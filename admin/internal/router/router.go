@@ -7,7 +7,7 @@ import (
 )
 
 func Register(r *gin.Engine) {
-	adminGroup := r.Group("/api/short-link/admin/vi")
+	adminGroup := r.Group("/api/short-link/admin/v1")
 
 	adminGroup.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
