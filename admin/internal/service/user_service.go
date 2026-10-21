@@ -32,10 +32,10 @@ func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*
 	}
 
 	return &resp.UserResp{
-		ID: user.ID,
+		ID:       user.ID,
 		Username: user.Username,
 		RealName: user.RealName,
-		Phone: user.Phone,
-		Mail: user.Mail,
+		Phone:    user.Phone,
+		Mail:     user.Mail,
 	}, nil
 }

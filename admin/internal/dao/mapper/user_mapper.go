@@ -34,7 +34,7 @@ func (m *UserMapper) SelectByUsername(ctx context.Context, username string) (*en
 		WHERE username = ?
 		  AND del_flag = 0
 		LIMIT 1
-	`, table)	
+	`, table)
 
 	var user entity.UserDO
 
@@ -53,5 +53,5 @@ func (m *UserMapper) SelectByUsername(ctx context.Context, username string) (*en
 		return nil, err
 	}
 
-	return &user, nil	
+	return &user, nil
 }

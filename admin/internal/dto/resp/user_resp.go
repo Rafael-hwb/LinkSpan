@@ -6,5 +6,5 @@ type UserResp struct {
 	Username string `json:"username"`
 	RealName string `json:"realName"`
 	Phone    string `json:"phone"`
-	Mail     string `json:"mail"`	
+	Mail     string `json:"mail"`
 }

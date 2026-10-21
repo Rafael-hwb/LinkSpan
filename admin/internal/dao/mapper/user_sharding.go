@@ -10,7 +10,7 @@ func UserTableName(username string) string {
 	var hash int32
 
 	//utf-16编码单元计算
-	for _, unit := range utf16.Encode([]rune(username)){
+	for _, unit := range utf16.Encode([]rune(username)) {
 		hash = 31*hash + int32(unit)
 	}
 

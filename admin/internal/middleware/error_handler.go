@@ -26,12 +26,12 @@ func ErrorHandler() gin.HandlerFunc {
 				_ = c.Error(errors.New("请求处理发生 panic"))
 				c.Abort()
 			}
-			
+
 			//没有错误，交给正常流程
 			if len(c.Errors) == 0 {
-				return 
+				return
 			}
-			
+
 			//检查和记录错误
 			err := c.Errors.Last().Err
 

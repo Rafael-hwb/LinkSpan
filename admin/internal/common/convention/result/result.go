@@ -1,6 +1,5 @@
 package result
 
-
 const SuccessCode = "0"
 
 //所有业务接口共用的相应结构
@@ -23,8 +22,8 @@ func Success[T any](data T) Result[T] {
 
 func Failure(code, message string) Result[any] {
 	return Result[any]{
-		Code:     code,
-		Message:  message,
-		Success:  code == SuccessCode,
+		Code:    code,
+		Message: message,
+		Success: code == SuccessCode,
 	}
 }

@@ -12,7 +12,7 @@ func NewServiceError(code errorcode.ErrorCode) *ServiceError {
 	return &ServiceError{
 		Code:    code.Code,
 		Message: code.Message,
-	}	
+	}
 }
 
 func (e *ServiceError) Error() string {
