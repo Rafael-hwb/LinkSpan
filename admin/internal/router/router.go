@@ -15,4 +15,6 @@ func Register(r *gin.Engine) {
 			"status": "ok",
 		})
 	})
+
+	adminGroup.GET("/api/short-link/admin/vi/user/{username}", )
 }
