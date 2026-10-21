@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine, UserController *controller.UserController) {
+func Register(r *gin.Engine, userController *controller.UserController) {
 	adminGroup := r.Group("/api/short-link/admin/v1")
 
 	adminGroup.GET("/health", func(c *gin.Context) {
@@ -17,5 +17,5 @@ func Register(r *gin.Engine, UserController *controller.UserController) {
 		})
 	})
 
-	adminGroup.GET("user/:username", UserController.GetUserByUsername)
+	adminGroup.GET("user/:username", userController.GetUserByUsername)
 }
