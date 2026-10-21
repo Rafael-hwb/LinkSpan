@@ -17,8 +17,9 @@ var (
 		Message: "系统执行错误",
 	}
 
-	UserNull = ErrorCode{
-		Code:    "B000200",
-		Message: "用户记录不存在",
+	RemoteError = ErrorCode{
+		Code:    "C000001",
+		Message: "调用第三方服务错误",
 	}
+
 )
