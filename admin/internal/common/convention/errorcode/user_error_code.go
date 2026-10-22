@@ -1,6 +1,6 @@
 package errorcode
 
-var(
+var (
 	UserNull = ErrorCode{
 		Code:    "B000200",
 		Message: "用户记录不存在",

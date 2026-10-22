@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"linkspan/admin/internal/common/convention/errorcode"
 	"linkspan/admin/internal/common/convention/exception"
+	"linkspan/admin/internal/common/serialize"
 	"linkspan/admin/internal/dto/resp"
 	"linkspan/admin/internal/repository"
 )
@@ -35,7 +36,7 @@ func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*
 		ID:       user.ID,
 		Username: user.Username,
 		RealName: user.RealName,
-		Phone:    user.Phone,
+		Phone:    serialize.Phone(user.Phone),
 		Mail:     user.Mail,
 	}, nil
 }
