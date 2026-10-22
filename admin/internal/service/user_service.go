@@ -40,3 +40,15 @@ func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*
 		Mail:     user.Mail,
 	}, nil
 }
+
+
+//true为可用， false为已被占用
+func (s *UserService) HasUsername(ctx context.Context, username string) (bool, error) {
+	exists, err := s.userRepository.ExistsByUsername(ctx, username)
+
+	if err != nil {
+		return false, fmt.Errorf("检查用户名失败： %w", err)
+	}
+
+	return !exists, nil
+}
