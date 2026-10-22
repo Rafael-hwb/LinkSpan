@@ -1,4 +1,4 @@
-package controller
+package handler
 
 import (
 	"linkspan/admin/internal/common/convention/result"
@@ -8,17 +8,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserController struct {
+type UserHandler struct {
 	userService *service.UserService
 }
 
-func NewUserController(userService *service.UserService) *UserController {
-	return &UserController{
+func NewUserHandler(userService *service.UserService) *UserHandler {
+	return &UserHandler{
 		userService: userService,
 	}
 }
 
-func (u *UserController) GetUserByUsername(c *gin.Context) {
+func (u *UserHandler) GetUserByUsername(c *gin.Context) {
 	username := c.Param("username")
 
 	user, err := u.userService.GetUserByUsername(

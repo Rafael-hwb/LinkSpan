@@ -7,22 +7,22 @@ import (
 	"fmt"
 	"linkspan/admin/internal/common/convention/errorcode"
 	"linkspan/admin/internal/common/convention/exception"
-	"linkspan/admin/internal/dao/mapper"
 	"linkspan/admin/internal/dto/resp"
+	"linkspan/admin/internal/repository"
 )
 
 type UserService struct {
-	userMapper *mapper.UserMapper
+	userRepository *repository.UserRepository
 }
 
-func NewUserService(userMapper *mapper.UserMapper) *UserService {
+func NewUserService(userRepository *repository.UserRepository) *UserService {
 	return &UserService{
-		userMapper: userMapper,
+		userRepository: userRepository,
 	}
 }
 
 func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*resp.UserResp, error) {
-	user, err := s.userMapper.SelectByUsername(ctx, username)
+	user, err := s.userRepository.SelectByUsername(ctx, username)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, exception.NewServiceError(errorcode.UserNull)
 	}

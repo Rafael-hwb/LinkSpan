@@ -1,13 +1,13 @@
 package router
 
 import (
-	"linkspan/admin/internal/controller"
+	"linkspan/admin/internal/handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine, userController *controller.UserController) {
+func Register(r *gin.Engine, userHandler *handler.UserHandler) {
 	adminGroup := r.Group("/api/short-link/admin/v1")
 
 	adminGroup.GET("/health", func(c *gin.Context) {
@@ -17,5 +17,5 @@ func Register(r *gin.Engine, userController *controller.UserController) {
 		})
 	})
 
-	adminGroup.GET("user/:username", userController.GetUserByUsername)
+	adminGroup.GET("user/:username", userHandler.GetUserByUsername)
 }

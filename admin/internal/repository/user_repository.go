@@ -1,4 +1,4 @@
-package mapper
+package repository
 
 import (
 	"context"
@@ -7,20 +7,20 @@ import (
 	"linkspan/admin/internal/dao/entity"
 )
 
-//用户表数据库操作
-type UserMapper struct {
+// 用户表数据库操作
+type UserRepository struct {
 	db *sql.DB
 }
 
-//创建Mapper并传入数据库连接池
-func NewUserMapper(db *sql.DB) *UserMapper {
-	return &UserMapper{
+// 创建Repository并传入数据库连接池
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{
 		db: db,
 	}
 }
 
-//根据用户名查找用户
-func (m *UserMapper) SelectByUsername(ctx context.Context, username string) (*entity.UserDO, error) {
+// 根据用户名查找用户
+func (m *UserRepository) SelectByUsername(ctx context.Context, username string) (*entity.UserDO, error) {
 	table := UserTableName(username)
 
 	query := fmt.Sprintf(`

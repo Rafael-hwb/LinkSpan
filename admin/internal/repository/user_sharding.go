@@ -1,11 +1,11 @@
-package mapper
+package repository
 
 import (
 	"fmt"
 	"unicode/utf16"
 )
 
-//哈希定位用户表
+// 哈希定位用户表
 func UserTableName(username string) string {
 	var hash int32
 
