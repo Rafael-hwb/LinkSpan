@@ -38,7 +38,6 @@ func (h *UserHandler) GetUserByUsername(c *gin.Context) {
 	c.JSON(http.StatusOK, result.Success(user))
 }
 
-
 func (h *UserHandler) HasUsername(c *gin.Context) {
 	var Request req.UserHasUsernameReq
 
@@ -49,7 +48,7 @@ func (h *UserHandler) HasUsername(c *gin.Context) {
 	}
 
 	avaliable, err := h.userService.HasUsername(c.Request.Context(), Request.Username)
-	
+
 	if err != nil {
 		c.Error(err)
 		c.Abort()

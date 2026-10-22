@@ -41,8 +41,7 @@ func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*
 	}, nil
 }
 
-
-//true为可用， false为已被占用
+// true为可用， false为已被占用
 func (s *UserService) HasUsername(ctx context.Context, username string) (bool, error) {
 	exists, err := s.userRepository.ExistsByUsername(ctx, username)
 
