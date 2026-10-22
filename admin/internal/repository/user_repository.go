@@ -55,3 +55,31 @@ func (m *UserRepository) SelectByUsername(ctx context.Context, username string) 
 
 	return &user, nil
 }
+
+
+//判断用户名是否存在
+func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) (bool, error) {
+	table := UserTableName(username)
+
+	query := fmt.Sprintf(`
+		SELECT EXISTS(
+			SELECT 1
+			FROM %s
+			WHERE username = ?
+		)
+		`,table)
+
+	var exists bool
+	
+	err := r.db.QueryRowContext(
+		ctx,
+		query,
+		username,
+	).Scan(&exists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
