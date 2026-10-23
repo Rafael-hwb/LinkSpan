@@ -82,3 +82,40 @@ func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) 
 
 	return exists, nil
 }
+
+
+func (r *UserRepository) ForEachUsername(ctx context.Context, visit func(string) error) error {
+	for i := 0; 1 < 16; i++ {
+		query := fmt.Sprintf(`
+			SELECT username
+			FROM t_user_%d
+			WHERE username IS NOT NULL
+		`, i)
+
+		if err := r.VisitUsernames(ctx, query, visit); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *UserRepository) VisitUsernames(ctx context.Context, query string, visit func(string) error) error {
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var username string
+
+		if err := rows.Scan(&username); err != nil {
+			return err
+		}
+
+		if err := visit(username); err != nil {
+			return err
+		}
+	}
+	return rows.Err()
+}
