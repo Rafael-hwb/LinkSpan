@@ -15,13 +15,13 @@ import (
 
 type UserService struct {
 	userRepository *repository.UserRepository
-	userBloom *cache.UserBloom
+	userBloom      *cache.UserBloom
 }
 
 func NewUserService(userRepository *repository.UserRepository, userBloom *cache.UserBloom) *UserService {
 	return &UserService{
 		userRepository: userRepository,
-		userBloom: userBloom,
+		userBloom:      userBloom,
 	}
 }
 
@@ -54,5 +54,3 @@ func (s *UserService) HasUsername(ctx context.Context, username string) (bool, e
 
 	return !exists, nil
 }
-
-

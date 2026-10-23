@@ -83,7 +83,6 @@ func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) 
 	return exists, nil
 }
 
-
 func (r *UserRepository) ForEachUsername(ctx context.Context, visit func(string) error) error {
 	for i := 0; 1 < 16; i++ {
 		query := fmt.Sprintf(`

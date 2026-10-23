@@ -17,17 +17,17 @@ func OpenRedis() (*redis.Client, error) {
 	}
 
 	client := redis.NewClient(&redis.Options{
-		Addr:          addr,
-		Password:      os.Getenv("LINKSPAN_REDIS_PASSWORD"),
-		DB:            0,
-		DialTimeout:   5 * time.Second,
-		ReadTimeout:   5 * time.Second,
-		WriteTimeout:  5 * time.Second,
+		Addr:         addr,
+		Password:     os.Getenv("LINKSPAN_REDIS_PASSWORD"),
+		DB:           0,
+		DialTimeout:  5 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
 	})
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
-		5 * time.Second,
+		5*time.Second,
 	)
 	defer cancel()
 

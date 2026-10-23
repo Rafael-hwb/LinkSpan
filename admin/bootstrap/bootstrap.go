@@ -15,8 +15,8 @@ import (
 )
 
 // 向已有的Gin引擎注册管理模块路由
-func RegisterRoutes(ctx context.Context, r *gin.Engine, 
-	db *sql.DB, redisClient *redis.Client) error{
+func RegisterRoutes(ctx context.Context, r *gin.Engine,
+	db *sql.DB, redisClient *redis.Client) error {
 	userRepository := repository.NewUserRepository(db)
 	userBloom := cache.NewUserBloom(redisClient)
 
@@ -30,7 +30,7 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 			return userBloom.Add(ctx, username)
 		},
 	); err != nil {
-		return  fmt.Errorf("导入已有用户名失败: %w", err)
+		return fmt.Errorf("导入已有用户名失败: %w", err)
 	}
 
 	if err := userBloom.MarkReady(ctx); err != nil {
