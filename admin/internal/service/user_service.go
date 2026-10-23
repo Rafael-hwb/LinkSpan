@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"linkspan/admin/internal/cache"
 	"linkspan/admin/internal/common/convention/errorcode"
 	"linkspan/admin/internal/common/convention/exception"
 	"linkspan/admin/internal/common/serialize"
@@ -14,11 +15,13 @@ import (
 
 type UserService struct {
 	userRepository *repository.UserRepository
+	userBloom *cache.UserBloom
 }
 
-func NewUserService(userRepository *repository.UserRepository) *UserService {
+func NewUserService(userRepository *repository.UserRepository, userBloom *cache.UserBloom) *UserService {
 	return &UserService{
 		userRepository: userRepository,
+		userBloom: userBloom,
 	}
 }
 
@@ -41,13 +44,15 @@ func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*
 	}, nil
 }
 
-// true为可用， false为已被占用
+// true为可用， false为可能被占用
 func (s *UserService) HasUsername(ctx context.Context, username string) (bool, error) {
-	exists, err := s.userRepository.ExistsByUsername(ctx, username)
 
+	exists, err := s.userBloom.Contains(ctx, username)
 	if err != nil {
-		return false, fmt.Errorf("检查用户名失败： %w", err)
+		return false, err
 	}
 
 	return !exists, nil
 }
+
+
