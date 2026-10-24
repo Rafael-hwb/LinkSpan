@@ -5,19 +5,30 @@ import (
 	"unicode/utf16"
 )
 
-// 哈希定位用户表
-func UserTableName(username string) string {
+//当前固定的用户物理表数量
+const UserShardCount = 16
+
+//Java String.hashCode 规则计算哈希
+func javaStringHash(value string) int32 {
 	var hash int32
 
-	//utf-16编码单元计算
-	for _, unit := range utf16.Encode([]rune(username)) {
+	for _, unit := range utf16.Encode([]rune(value)) {
 		hash = 31*hash + int32(unit)
 	}
+
+	return hash
+}
+
+//返回用户名对应的物理表名
+func UserTableName(username string) string {
+	hash := javaStringHash(username)
 
 	value := int64(hash)
 	if value < 0 {
 		value = -value
 	}
 
-	return fmt.Sprintf("t_user_%d", value%16)
+	index := value % int64(UserShardCount)
+
+	return fmt.Sprintf("t_user_%d", index)
 }
