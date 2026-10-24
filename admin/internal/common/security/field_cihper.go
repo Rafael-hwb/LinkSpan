@@ -14,7 +14,7 @@ type FieldCiper struct {
 	aead cipher.AEAD
 }
 
-func NewFieldCiper(encodeKey string) (*FieldCiper, error) {
+func NewFieldCipher(encodeKey string) (*FieldCiper, error) {
 	key, err := base64.StdEncoding.DecodeString(encodeKey)
 	if err != nil {
 		return nil, fmt.Errorf("字段密钥不是有效的 Base64")
@@ -70,7 +70,7 @@ func (f *FieldCiper) Decrypt(field string, value string) (string, error) {
 	if !strings.HasPrefix(value, encryptedPrefix) {
 		return "", fmt.Errorf("字段 %s 尚未迁移或密文格式不支持", field)
 	}
-	
+
 	encoded := strings.TrimPrefix(value, encryptedPrefix)
 
 	encrypted, err := base64.StdEncoding.DecodeString(encoded)
