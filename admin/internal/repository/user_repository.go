@@ -126,7 +126,7 @@ func (r *UserRepository) WithTransaction(
 ) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil
+		return err
 	}
 	defer tx.Rollback()
 
