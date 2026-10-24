@@ -57,3 +57,24 @@ func (h *UserHandler) HasUsername(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result.Success(avaliable))
 }
+
+func (h *UserHandler) Register(c *gin.Context) {
+	var request req.UserRegisterReq
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
+		c.Abort()
+		return
+	}
+
+	if err := h.userService.Register(c.Request.Context(), request); err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(
+		http.StatusOK,
+		result.Success[any](nil),
+	)
+}

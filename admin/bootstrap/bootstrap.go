@@ -19,6 +19,7 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 	db *sql.DB, redisClient *redis.Client) error {
 	userRepository := repository.NewUserRepository(db)
 	userBloom := cache.NewUserBloom(redisClient)
+	userLock := cache.NewUserRegisterLock(redisClient)
 
 	if err := userBloom.Prepare(ctx); err != nil {
 		return err
@@ -37,7 +38,7 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 		return fmt.Errorf("标记过滤器就绪失败: %w", err)
 	}
 
-	userService := service.NewUserService(userRepository, userBloom)
+	userService := service.NewUserService(userRepository, userBloom, userLock)
 	userHandler := handler.NewUserHandler(userService)
 	router.Register(r, userHandler)
 
