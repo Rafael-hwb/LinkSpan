@@ -27,7 +27,7 @@ type UserService struct {
 	userLock       *cache.UserRegisterLock
 }
 
-func NewUserService(userRepository *repository.UserRepository, 
+func NewUserService(userRepository *repository.UserRepository,
 	userBloom *cache.UserBloom, userLock *cache.UserRegisterLock) *UserService {
 	return &UserService{
 		userRepository: userRepository,
@@ -66,7 +66,6 @@ func (s *UserService) HasUsername(ctx context.Context, username string) (bool, e
 	return !exists, nil
 }
 
-
 var registerUsernamePattern = regexp.MustCompile(
 	`^[a-z0-9_]{3,32}$`,
 )
@@ -81,7 +80,7 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	available ,err := s.HasUsername(ctx, request.Username)
+	available, err := s.HasUsername(ctx, request.Username)
 	if err != nil {
 		return err
 	}
@@ -135,7 +134,7 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 		RealName: request.RealName,
 		Phone:    request.Phone,
 		Mail:     request.Mail,
-	}	
+	}
 
 	err = s.userRepository.WithTransaction(
 		ctx,
@@ -177,5 +176,5 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 		return fmt.Errorf("注册用户失败: %w", err)
 	}
 
-	return nil	
+	return nil
 }

@@ -6,7 +6,6 @@ var (
 		Message: "用户记录不存在",
 	}
 
-	
 	UserNameExist = ErrorCode{
 		Code:    "B000201",
 		Message: "用户名已存在",

@@ -22,7 +22,7 @@ func NewUserBloom(client *redis.Client) *UserBloom {
 	}
 }
 
-//准备过滤器，标记为尚未就绪（目前为本地单实例启动初始化）
+// 准备过滤器，标记为尚未就绪（目前为本地单实例启动初始化）
 func (b *UserBloom) Prepare(ctx context.Context) error {
 	script := `
 		redis.call('DEL', KEYS[2])
@@ -50,7 +50,7 @@ func (b *UserBloom) Prepare(ctx context.Context) error {
 	return nil
 }
 
-//将用户名加入布隆过滤器
+// 将用户名加入布隆过滤器
 func (b *UserBloom) Add(ctx context.Context, username string) error {
 	script := `
 		if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -73,7 +73,7 @@ func (b *UserBloom) Add(ctx context.Context, username string) error {
 	return nil
 }
 
-//标记已有用户名导入完成
+// 标记已有用户名导入完成
 func (b *UserBloom) MarkReady(ctx context.Context) error {
 	script := `
 		if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -91,7 +91,7 @@ func (b *UserBloom) MarkReady(ctx context.Context) error {
 	).Err()
 }
 
-//判断用户名是否可能存在
+// 判断用户名是否可能存在
 func (b *UserBloom) Contains(
 	ctx context.Context,
 	username string,

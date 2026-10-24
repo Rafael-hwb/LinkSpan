@@ -119,7 +119,6 @@ func (r *UserRepository) VisitUsernames(ctx context.Context, query string, visit
 	return rows.Err()
 }
 
-
 // 开启一个mysql事务
 func (r *UserRepository) WithTransaction(
 	ctx context.Context,
@@ -159,7 +158,7 @@ func (r *UserRepository) Insert(
 		)
 		VALUES (?, ?, ?, ?, ?, 0, NOW(), NOW(), 0)
 	`, table)
-	
+
 	executed, err := tx.ExecContext(
 		ctx,
 		query,
@@ -173,6 +172,6 @@ func (r *UserRepository) Insert(
 	if err != nil {
 		return 0, err
 	}
-	
-	return  executed.RowsAffected()
+
+	return executed.RowsAffected()
 }

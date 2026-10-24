@@ -24,30 +24,29 @@ func registerLockKey(username string) string {
 }
 
 //尝试取得锁，不等待其他持有者释放
-func (l *UserRegisterLock) TryLock(ctx context.Context, 
+func (l *UserRegisterLock) TryLock(ctx context.Context,
 	username string) (string, bool, error) {
-		var random [16]byte
+	var random [16]byte
 
-		if _, err := rand.Read(random[:]); err != nil {
-			return "", false, err
-		}
-
-		token := hex.EncodeToString(random[:])
-
-		acquired, err := l.client.SetNX(
-			ctx,
-			registerLockKey(username),
-			token,
-			30 * time.Second,
-		).Result()
-
-		if err != nil {
-			return "", false, err
-		}
-
-		return token, acquired, nil
+	if _, err := rand.Read(random[:]); err != nil {
+		return "", false, err
 	}
 
+	token := hex.EncodeToString(random[:])
+
+	acquired, err := l.client.SetNX(
+		ctx,
+		registerLockKey(username),
+		token,
+		30*time.Second,
+	).Result()
+
+	if err != nil {
+		return "", false, err
+	}
+
+	return token, acquired, nil
+}
 
 //删除token仍属于当前请求的锁
 func (l *UserRegisterLock) Unlock(
