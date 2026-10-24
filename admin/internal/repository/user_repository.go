@@ -136,3 +136,43 @@ func (r *UserRepository) WithTransaction(
 	}
 	return tx.Commit()
 }
+
+func (r *UserRepository) Insert(
+	ctx context.Context,
+	tx *sql.Tx,
+	user *entity.UserDO,
+) (int64, error) {
+	table := UserTableName(user.Username)
+
+	query := fmt.Sprintf(`
+		INSERT INTO %s
+		(
+			username,
+			password,
+			real_name,
+			phone,
+			mail,
+			deletion_time,
+			create_time,
+			update_time,
+			del_flag
+		)
+		VALUES (?, ?, ?, ?, ?, 0, NOW(), NOW(), 0)
+	`, table)
+	
+	executed, err := tx.ExecContext(
+		ctx,
+		query,
+		user.Username,
+		user.Password,
+		user.RealName,
+		user.Phone,
+		user.Mail,
+	)
+
+	if err != nil {
+		return 0, err
+	}
+	
+	return  executed.RowsAffected()
+}
