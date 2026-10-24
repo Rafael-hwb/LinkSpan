@@ -4,18 +4,22 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"linkspan/admin/internal/common/security"
 	"linkspan/admin/internal/dao/entity"
 )
 
 // 用户表数据库操作
 type UserRepository struct {
 	db *sql.DB
+	fieldCipher *security.FieldCipher
 }
 
 // 创建Repository并传入数据库连接池
-func NewUserRepository(db *sql.DB) *UserRepository {
+func NewUserRepository(db *sql.DB,
+	fieldCipher *security.FieldCipher) *UserRepository {
 	return &UserRepository{
 		db: db,
+		fieldCipher: fieldCipher,
 	}
 }
 
@@ -136,11 +140,18 @@ func (r *UserRepository) WithTransaction(
 	return tx.Commit()
 }
 
-func (r *UserRepository) Insert(
-	ctx context.Context,
-	tx *sql.Tx,
-	user *entity.UserDO,
-) (int64, error) {
+func (r *UserRepository) Insert(ctx context.Context,
+	tx *sql.Tx, user *entity.UserDO,) (int64, error) {
+	encryptedPhone, err := r.fieldCipher.Encrypt("phone", user.Phone)
+	if err != nil {
+		return 0, err
+	}
+
+	encryptedMail, err := r.fieldCipher.Encrypt("mail", user.Mail)
+	if err != nil {
+		return 0, err
+	}
+
 	table := UserTableName(user.Username)
 
 	query := fmt.Sprintf(`
@@ -165,8 +176,8 @@ func (r *UserRepository) Insert(
 		user.Username,
 		user.Password,
 		user.RealName,
-		user.Phone,
-		user.Mail,
+		encryptedPhone,
+		encryptedMail,
 	)
 
 	if err != nil {

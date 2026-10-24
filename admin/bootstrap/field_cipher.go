@@ -6,9 +6,9 @@ import (
 	"os"
 )
 
-func OpenFieldCipher() (*security.FieldCiper, error) {
+func OpenFieldCipher() (*security.FieldCipher, error) {
 	key := os.Getenv("LINKSPAN_FIELD_KEY")
-	
+
 	if key == "" {
 		return nil, fmt.Errorf("请设置 LINKSPAN_FIELD_KEY")
 	}

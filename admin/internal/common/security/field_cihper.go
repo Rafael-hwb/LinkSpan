@@ -10,11 +10,11 @@ import (
 
 const encryptedPrefix = "enc:vi:"
 
-type FieldCiper struct {
+type FieldCipher struct {
 	aead cipher.AEAD
 }
 
-func NewFieldCipher(encodeKey string) (*FieldCiper, error) {
+func NewFieldCipher(encodeKey string) (*FieldCipher, error) {
 	key, err := base64.StdEncoding.DecodeString(encodeKey)
 	if err != nil {
 		return nil, fmt.Errorf("字段密钥不是有效的 Base64")
@@ -34,7 +34,7 @@ func NewFieldCipher(encodeKey string) (*FieldCiper, error) {
 		return nil, err
 	}
 
-	return &FieldCiper{
+	return &FieldCipher{
 		aead: aead,
 	}, nil
 }
@@ -45,7 +45,7 @@ func fieldAAD(field string) []byte {
 
 
 //将正常字段值转换为带版本前缀的密文
-func (f *FieldCiper) Encrypt(field string, value string) (string, error) {
+func (f *FieldCipher) Encrypt(field string, value string) (string, error) {
 	if value == "" {
 		return "", nil
 	}
@@ -62,7 +62,7 @@ func (f *FieldCiper) Encrypt(field string, value string) (string, error) {
 }
 
 // Decrypt 验证并解密字段
-func (f *FieldCiper) Decrypt(field string, value string) (string, error) {
+func (f *FieldCipher) Decrypt(field string, value string) (string, error) {
 	if value == ""{
 		return "", nil
 	}
