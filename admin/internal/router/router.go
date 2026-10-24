@@ -17,7 +17,9 @@ func Register(r *gin.Engine, userHandler *handler.UserHandler) {
 		})
 	})
 
-	adminGroup.GET("user/:username", userHandler.GetUserByUsername)
+	adminGroup.GET("/user/:username", userHandler.GetUserByUsername)
 
-	adminGroup.GET("user/has-username", userHandler.HasUsername)
+	adminGroup.GET("/user/has-username", userHandler.HasUsername)
+
+	adminGroup.POST("/user", userHandler.Register)
 }
