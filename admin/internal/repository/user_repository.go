@@ -118,3 +118,21 @@ func (r *UserRepository) VisitUsernames(ctx context.Context, query string, visit
 	}
 	return rows.Err()
 }
+
+
+// 开启一个mysql事务
+func (r *UserRepository) WithTransaction(
+	ctx context.Context,
+	action func(*sql.Tx) error,
+) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil
+	}
+	defer tx.Rollback()
+
+	if err := action(tx); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
