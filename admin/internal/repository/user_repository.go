@@ -84,7 +84,7 @@ func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) 
 }
 
 func (r *UserRepository) ForEachUsername(ctx context.Context, visit func(string) error) error {
-	for i := 0; i < 16; i++ {
+	for i := 0; i < UserShardCount; i++ {
 		query := fmt.Sprintf(`
 			SELECT username
 			FROM t_user_%d
