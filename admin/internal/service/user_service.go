@@ -26,14 +26,17 @@ type UserService struct {
 	userRepository *repository.UserRepository
 	userBloom      *cache.UserBloom
 	userLock       *cache.UserRegisterLock
+	userSession    *cache.UserSession
 }
 
 func NewUserService(userRepository *repository.UserRepository,
-	userBloom *cache.UserBloom, userLock *cache.UserRegisterLock) *UserService {
+	userBloom *cache.UserBloom, userLock *cache.UserRegisterLock,
+	usersession *cache.UserSession) *UserService {
 	return &UserService{
 		userRepository: userRepository,
 		userBloom:      userBloom,
 		userLock:       userLock,
+		userSession:    usersession,
 	}
 }
 
@@ -227,4 +230,56 @@ func (s *UserService) Update(ctx context.Context, request req.UserUpdateReq) err
 	}
 
 	return nil
+}
+
+func loginFailedError() *exception.ServiceError {
+	err := exception.NewServiceError(errorcode.ClientError)
+	err.Message = "用户名或密码错误"
+	return err	
+}
+
+func (s *UserService) Login(ctx context.Context, request req.UserLoginReq) (*resp.UserLoginResp, error) {
+	if !registerUsernamePattern.MatchString(request.Username) || len(request.Password) > 72 {
+		return nil, exception.NewServiceError(errorcode.ClientError)
+	}
+	
+	user, err := s.userRepository.SelectForLogin(ctx, request.Username)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, loginFailedError()
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("查询登录用户失败: %w", err)
+	}
+	
+	if user.Password == "" {
+		return nil, loginFailedError()
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
+
+	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+		return nil, loginFailedError()
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("验证用户密码失败: %w", err)
+	}
+
+	token, err := s.userSession.CreateOrRefresh(
+		ctx,
+		cache.SessionUser{
+			ID:       user.ID,
+			Username: user.Username,
+			RealName: user.RealName,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("保存登录会话失败: %w", err)
+	}
+
+	return &resp.UserLoginResp{
+		Token: token,
+	}, nil
 }
