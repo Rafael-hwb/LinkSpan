@@ -54,7 +54,11 @@ func (r *UserRepository) SelectByUsername(ctx context.Context, username string) 
 		&user.Mail,
 	)
 
-		user.Phone, err = r.fieldCipher.Decrypt(
+	if err != nil {
+		return nil, err
+	}
+	
+	user.Phone, err = r.fieldCipher.Decrypt(
 		"phone",
 		user.Phone,
 	)
@@ -68,10 +72,6 @@ func (r *UserRepository) SelectByUsername(ctx context.Context, username string) 
 	)
 	if err != nil {
 		return nil, fmt.Errorf("读取用户邮箱失败: %w", err)
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	return &user, nil
