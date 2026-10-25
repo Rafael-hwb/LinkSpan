@@ -78,3 +78,22 @@ func (h *UserHandler) Register(c *gin.Context) {
 		result.Success[any](nil),
 	)
 }
+
+
+func (h *UserHandler) Update(c *gin.Context) {
+	var request *req.UserUpdateReq
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
+		c.Abort()
+		return
+	}
+
+	if err := h.userService.Update(c.Request.Context(), *request); err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, result.Success[any](nil))
+}
