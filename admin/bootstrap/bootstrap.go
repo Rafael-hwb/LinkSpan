@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"linkspan/admin/internal/cache"
 	"linkspan/admin/internal/handler"
+	"linkspan/admin/internal/middleware"
 	"linkspan/admin/internal/repository"
 	"linkspan/admin/internal/router"
 	"linkspan/admin/internal/service"
@@ -45,7 +46,8 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 
 	userService := service.NewUserService(userRepository, userBloom, userLock)
 	userHandler := handler.NewUserHandler(userService)
-	router.Register(r, userHandler)
+	userSession := cache.NewUserSession(redisClient)
+	router.Register(r, userHandler, middleware.RequireLogin(userSession))
 
 	return nil
 }
