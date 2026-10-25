@@ -21,7 +21,7 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 	if err != nil {
 		return err
 	}
-	
+
 	userRepository := repository.NewUserRepository(db, fieldCipher)
 	userBloom := cache.NewUserBloom(redisClient)
 	userLock := cache.NewUserRegisterLock(redisClient)

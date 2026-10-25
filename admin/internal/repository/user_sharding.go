@@ -5,10 +5,10 @@ import (
 	"unicode/utf16"
 )
 
-//当前固定的用户物理表数量
+// 当前固定的用户物理表数量
 const UserShardCount = 16
 
-//Java String.hashCode 规则计算哈希
+// Java String.hashCode 规则计算哈希
 func javaStringHash(value string) int32 {
 	var hash int32
 
@@ -19,7 +19,7 @@ func javaStringHash(value string) int32 {
 	return hash
 }
 
-//返回用户名对应的物理表名
+// 返回用户名对应的物理表名
 func UserTableName(username string) string {
 	hash := javaStringHash(username)
 

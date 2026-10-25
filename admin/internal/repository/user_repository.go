@@ -10,7 +10,7 @@ import (
 
 // 用户表数据库操作
 type UserRepository struct {
-	db *sql.DB
+	db          *sql.DB
 	fieldCipher *security.FieldCipher
 }
 
@@ -18,7 +18,7 @@ type UserRepository struct {
 func NewUserRepository(db *sql.DB,
 	fieldCipher *security.FieldCipher) *UserRepository {
 	return &UserRepository{
-		db: db,
+		db:          db,
 		fieldCipher: fieldCipher,
 	}
 }
@@ -57,7 +57,7 @@ func (r *UserRepository) SelectByUsername(ctx context.Context, username string) 
 	if err != nil {
 		return nil, err
 	}
-	
+
 	user.Phone, err = r.fieldCipher.Decrypt(
 		"phone",
 		user.Phone,
@@ -158,7 +158,7 @@ func (r *UserRepository) WithTransaction(
 }
 
 func (r *UserRepository) Insert(ctx context.Context,
-	tx *sql.Tx, user *entity.UserDO,) (int64, error) {
+	tx *sql.Tx, user *entity.UserDO) (int64, error) {
 	encryptedPhone, err := r.fieldCipher.Encrypt("phone", user.Phone)
 	if err != nil {
 		return 0, err

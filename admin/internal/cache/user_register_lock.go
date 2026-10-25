@@ -23,7 +23,7 @@ func registerLockKey(username string) string {
 	return "linkspan:user-register:lock:" + username
 }
 
-//尝试取得锁，不等待其他持有者释放
+// 尝试取得锁，不等待其他持有者释放
 func (l *UserRegisterLock) TryLock(ctx context.Context,
 	username string) (string, bool, error) {
 	var random [16]byte
@@ -48,7 +48,7 @@ func (l *UserRegisterLock) TryLock(ctx context.Context,
 	return token, acquired, nil
 }
 
-//删除token仍属于当前请求的锁
+// 删除token仍属于当前请求的锁
 func (l *UserRegisterLock) Unlock(
 	ctx context.Context,
 	username string,
