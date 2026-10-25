@@ -24,7 +24,7 @@ func NewUserRepository(db *sql.DB,
 }
 
 // 根据用户名查找用户
-func (m *UserRepository) SelectByUsername(ctx context.Context, username string) (*entity.UserDO, error) {
+func (r *UserRepository) SelectByUsername(ctx context.Context, username string) (*entity.UserDO, error) {
 	table := UserTableName(username)
 
 	query := fmt.Sprintf(`
@@ -42,7 +42,7 @@ func (m *UserRepository) SelectByUsername(ctx context.Context, username string) 
 
 	var user entity.UserDO
 
-	err := m.db.QueryRowContext(
+	err := r.db.QueryRowContext(
 		ctx,
 		query,
 		username,
@@ -53,6 +53,23 @@ func (m *UserRepository) SelectByUsername(ctx context.Context, username string) 
 		&user.Phone,
 		&user.Mail,
 	)
+
+		user.Phone, err = r.fieldCipher.Decrypt(
+		"phone",
+		user.Phone,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("读取用户手机号失败: %w", err)
+	}
+
+	user.Mail, err = r.fieldCipher.Decrypt(
+		"mail",
+		user.Mail,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("读取用户邮箱失败: %w", err)
+	}
+
 	if err != nil {
 		return nil, err
 	}
