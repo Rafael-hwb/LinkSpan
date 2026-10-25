@@ -17,7 +17,12 @@ import (
 // 向已有的Gin引擎注册管理模块路由
 func RegisterRoutes(ctx context.Context, r *gin.Engine,
 	db *sql.DB, redisClient *redis.Client) error {
-	userRepository := repository.NewUserRepository(db)
+	fieldCipher, err := OpenFieldCipher()
+	if err != nil {
+		return err
+	}
+	
+	userRepository := repository.NewUserRepository(db, fieldCipher)
 	userBloom := cache.NewUserBloom(redisClient)
 	userLock := cache.NewUserRegisterLock(redisClient)
 
