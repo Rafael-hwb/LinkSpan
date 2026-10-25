@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"linkspan/admin/internal/common/security"
 	"linkspan/admin/internal/dao/entity"
+	"strings"
 )
 
 // 用户表数据库操作
@@ -203,3 +204,71 @@ func (r *UserRepository) Insert(ctx context.Context,
 
 	return executed.RowsAffected()
 }
+
+
+func (r *UserRepository) UpdateProfile(ctx context.Context, tx *sql.Tx, 
+	username string, update entity.UserProfileUpdate) error {
+		table := UserTableName(username)
+
+	lockSQL := fmt.Sprintf(`
+		SELECT id
+		FROM %s
+		WHERE username = ? AND del_flag = 0
+		FOR UPDATE
+	`, table)
+
+	var id int64
+
+	if err := tx.QueryRowContext(ctx, lockSQL, username).Scan(&id); err != nil {
+		return err
+	}
+
+	var sets []string
+	var args []any
+
+	if update.RealName != nil {
+		sets = append(sets, "real_name = ?")
+		args = append(args, *update.RealName)
+	}
+
+	if update.Phone != nil {
+		encrypted, err := r.fieldCipher.Encrypt(
+			"phone",
+			*update.Phone,
+		)
+		if err != nil {
+			return err
+		}
+
+		sets = append(sets, "phone = ?")
+		args = append(args, encrypted)
+	}
+
+	if update.Mail != nil {
+		encrypted, err := r.fieldCipher.Encrypt(
+			"mail",
+			*update.Mail,
+		)
+		if err != nil {
+			return err
+		}
+
+		sets = append(sets, "mail = ?")
+		args = append(args, encrypted)
+	}	
+	if len(sets) == 0 {
+		return fmt.Errorf("没有需要更新的资料字段")
+	}
+
+	sets = append(sets, "update_time = NOW()")
+	args = append(args, id)
+
+	updateSQL := fmt.Sprintf(
+		"UPDATE %s SET %s WHERE id = ?",
+		table,
+		strings.Join(sets, ", "),
+	)
+
+	_, err := tx.ExecContext(ctx, updateSQL, args...)
+	return err	
+	}
