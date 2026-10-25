@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"linkspan/admin/internal/cache"
+	"linkspan/admin/internal/common/biz/usercontext"
 	"linkspan/admin/internal/common/convention/errorcode"
 	"linkspan/admin/internal/common/convention/exception"
 	"linkspan/admin/internal/common/serialize"
@@ -174,6 +175,55 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 		}
 
 		return fmt.Errorf("注册用户失败: %w", err)
+	}
+
+	return nil
+}
+
+func (s *UserService) Update(ctx context.Context, request req.UserUpdateReq) error {
+	currentUsername, ok := usercontext.Username(ctx)
+	if !ok {
+		err := exception.NewServiceError(errorcode.ClientError)
+		err.Message = "用户未登录或登录已过期"
+		return err
+	}
+
+	if currentUsername != request.Username {
+		err := exception.NewServiceError(errorcode.ClientError)
+		err.Message = "当前登录用户修改请求异常"
+		return err
+	}
+
+	if request.RealName == nil &&
+		request.Phone == nil &&
+		request.Mail == nil {
+		return exception.NewServiceError(errorcode.ClientError)
+	}
+
+	update := entity.UserProfileUpdate{
+		RealName: request.RealName,
+		Phone:    request.Phone,
+		Mail:     request.Mail,
+	}
+
+	err := s.userRepository.WithTransaction(
+		ctx,
+		func(tx *sql.Tx) error {
+			return s.userRepository.UpdateProfile(
+				ctx,
+				tx,
+				currentUsername,
+				update,
+			)
+		},
+	)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return exception.NewServiceError(errorcode.UserNull)
+	}
+
+	if err != nil {
+		return fmt.Errorf("修改用户资料失败: %w", err)
 	}
 
 	return nil
