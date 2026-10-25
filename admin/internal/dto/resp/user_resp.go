@@ -10,3 +10,4 @@ type UserResp struct {
 	Phone    serialize.Phone `json:"phone"`
 	Mail     string          `json:"mail"`
 }
+
