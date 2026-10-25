@@ -272,3 +272,39 @@ func (r *UserRepository) UpdateProfile(ctx context.Context, tx *sql.Tx,
 	_, err := tx.ExecContext(ctx, updateSQL, args...)
 	return err	
 	}
+
+
+//读取身份验证所需字段，不读取手机号和邮箱
+func (r *UserRepository) SelectForLogin(ctx context.Context, username string) (*entity.UserDO, error) {
+	table := UserTableName(username)
+
+	query := fmt.Sprintf(`
+		SELECT
+			id,
+			username,
+			COALESCE(password, ''),
+			COALESCE(real_name, '')
+		FROM %s
+		WHERE username = ?
+		  AND del_flag = 0
+		LIMIT 1
+	`, table)
+
+	var user entity.UserDO
+
+	err := r.db.QueryRowContext(
+		ctx,
+		query,
+		username,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Password,
+		&user.RealName,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
