@@ -1,3 +1,5 @@
+USE linkspan;
+
 CREATE TABLE `t_user_0`
 (
     `id`            bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
