@@ -1,67 +1,60 @@
 package middleware
 
 import (
+	"context"
+	"crypto/rand"
 	"errors"
-	"linkspan/admin/internal/common/convention/errorcode"
-	"linkspan/admin/internal/common/convention/exception"
-	"linkspan/admin/internal/common/convention/result"
+	"fmt"
 	"log"
 	"net/http"
 	"runtime/debug"
+
+	"linkspan/admin/internal/common/convention/errorcode"
+	"linkspan/admin/internal/common/convention/exception"
+	"linkspan/admin/internal/common/convention/result"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		defer func() {
-			//处理请求中意外产生的panic
-			if recovered := recover(); recovered != nil {
-				log.Printf(
-					"请求发生panic: %v\n%s",
-					recovered,
-					debug.Stack(),
-				)
+		requestID := rand.Text()
+		c.Header("X-Request-ID", requestID)
 
-				_ = c.Error(errors.New("请求处理发生 panic"))
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				// 不输出可能携带个人信息的 panic 值，保留类型及堆栈。
+				log.Printf("请求 panic requestId=%s type=%T\n%s", requestID, recovered, debug.Stack())
+				_ = c.Error(fmt.Errorf("请求处理发生 panic (%T)", recovered))
 				c.Abort()
 			}
-
-			//没有错误，交给正常流程
 			if len(c.Errors) == 0 {
 				return
 			}
-
-			//检查和记录错误
 			err := c.Errors.Last().Err
+			cause := err
+			for errors.Unwrap(cause) != nil {
+				cause = errors.Unwrap(cause)
+			}
+			log.Printf("请求失败 requestId=%s method=%s path=%q error=%v cause=%v",
+				requestID, c.Request.Method, c.Request.URL.Path, err, cause)
 
-			log.Printf(
-				"请求失败 method=%s path=%s error=%v",
-				c.Request.Method,
-				c.Request.URL.Path,
-				err,
-			)
-
-			// 已经发送响应时，不再写入第二份响应。
 			if c.Writer.Written() {
 				return
 			}
-
-			//设置默认值
 			code := errorcode.ServiceError.Code
 			message := errorcode.ServiceError.Message
-
-			// 识别已知业务错误
-			var ServiceError *exception.ServiceError
-			if errors.As(err, &ServiceError) {
-				code = ServiceError.Code
-				message = ServiceError.Message
+			var serviceErr *exception.ServiceError
+			if errors.As(err, &serviceErr) {
+				code = serviceErr.Code
+				message = serviceErr.Message
+			} else if errors.Is(err, context.DeadlineExceeded) {
+				code = errorcode.ServiceTimeout.Code
+				message = errorcode.ServiceTimeout.Message
 			}
-
-			c.AbortWithStatusJSON(
-				http.StatusOK,
-				result.Failure(code, message),
-			)
+			response := result.Failure(code, message)
+			response.RequestID = &requestID
+			c.AbortWithStatusJSON(http.StatusOK, response)
 		}()
 		c.Next()
 	}

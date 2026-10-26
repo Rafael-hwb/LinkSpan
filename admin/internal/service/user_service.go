@@ -43,7 +43,7 @@ func NewUserService(userRepository *repository.UserRepository,
 func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*resp.UserResp, error) {
 	user, err := s.userRepository.SelectByUsername(ctx, username)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, exception.NewServiceError(errorcode.UserNull)
+		return nil, exception.WrapServiceError(errorcode.UserNull, err)
 	}
 
 	if err != nil {
@@ -76,9 +76,11 @@ var registerUsernamePattern = regexp.MustCompile(
 
 func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq) error {
 	// 固定用户名格式，并检查 bcrypt 的密码字节限制
-	if !registerUsernamePattern.MatchString(request.Username) ||
-		len(request.Password) > 72 {
-		return exception.NewServiceError(errorcode.ClientError)
+	if !registerUsernamePattern.MatchString(request.Username) {
+		return exception.NewServiceError(errorcode.UsernameInvalid)
+	}
+	if len(request.Password) > 72 {
+		return exception.NewServiceError(errorcode.PasswordInvalid)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
@@ -103,7 +105,7 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 	}
 
 	if !acquired {
-		return exception.NewServiceError(errorcode.UserNameExist)
+		return exception.NewServiceError(errorcode.FlowLimitError)
 	}
 
 	defer func() {
@@ -174,7 +176,7 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 		var mysqlErr *mysql.MySQLError
 
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-			return exception.NewServiceError(errorcode.UserExist)
+			return exception.WrapServiceError(errorcode.UserExist, err)
 		}
 
 		return fmt.Errorf("注册用户失败: %w", err)
@@ -186,21 +188,17 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 func (s *UserService) Update(ctx context.Context, request req.UserUpdateReq) error {
 	currentUsername, ok := usercontext.Username(ctx)
 	if !ok {
-		err := exception.NewServiceError(errorcode.ClientError)
-		err.Message = "用户未登录或登录已过期"
-		return err
+		return exception.NewServiceError(errorcode.LoginRequired)
 	}
 
 	if currentUsername != request.Username {
-		err := exception.NewServiceError(errorcode.ClientError)
-		err.Message = "当前登录用户修改请求异常"
-		return err
+		return exception.NewServiceError(errorcode.AccessDenied)
 	}
 
 	if request.RealName == nil &&
 		request.Phone == nil &&
 		request.Mail == nil {
-		return exception.NewServiceError(errorcode.ClientError)
+		return exception.NewServiceError(errorcode.NoUpdateFields)
 	}
 
 	update := entity.UserProfileUpdate{
@@ -222,7 +220,7 @@ func (s *UserService) Update(ctx context.Context, request req.UserUpdateReq) err
 	)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return exception.NewServiceError(errorcode.UserNull)
+		return exception.WrapServiceError(errorcode.UserNull, err)
 	}
 
 	if err != nil {
@@ -232,21 +230,22 @@ func (s *UserService) Update(ctx context.Context, request req.UserUpdateReq) err
 	return nil
 }
 
-func loginFailedError() *exception.ServiceError {
-	err := exception.NewServiceError(errorcode.ClientError)
-	err.Message = "用户名或密码错误"
-	return err
+func loginFailedError(cause error) *exception.ServiceError {
+	return exception.WrapServiceError(errorcode.CredentialsInvalid, cause)
 }
 
 func (s *UserService) Login(ctx context.Context, request req.UserLoginReq) (*resp.UserLoginResp, error) {
-	if !registerUsernamePattern.MatchString(request.Username) || len(request.Password) > 72 {
-		return nil, exception.NewServiceError(errorcode.ClientError)
+	if !registerUsernamePattern.MatchString(request.Username) {
+		return nil, exception.NewServiceError(errorcode.UsernameInvalid)
+	}
+	if len(request.Password) > 72 {
+		return nil, exception.NewServiceError(errorcode.PasswordInvalid)
 	}
 
 	user, err := s.userRepository.SelectForLogin(ctx, request.Username)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, loginFailedError()
+		return nil, loginFailedError(err)
 	}
 
 	if err != nil {
@@ -254,13 +253,13 @@ func (s *UserService) Login(ctx context.Context, request req.UserLoginReq) (*res
 	}
 
 	if user.Password == "" {
-		return nil, loginFailedError()
+		return nil, loginFailedError(errors.New("用户没有可用于登录的密码哈希"))
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password))
 
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-		return nil, loginFailedError()
+		return nil, loginFailedError(err)
 	}
 
 	if err != nil {
@@ -301,9 +300,7 @@ func (s *UserService) Logout(ctx context.Context, username string, token string)
 	}
 
 	if !deleted {
-		err := exception.NewServiceError(errorcode.ClientError)
-		err.Message = "用户Token不存在或用户未登录"
-		return err
+		return exception.NewServiceError(errorcode.SessionInvalid)
 	}
 
 	return nil

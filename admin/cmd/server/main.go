@@ -31,7 +31,7 @@ func run() error {
 	defer redisClient.Close()
 
 	r := gin.New()
-	r.Use(gin.Logger())
+	r.Use(middleware.RequestLogger())
 	r.Use(middleware.ErrorHandler())
 
 	ctx, cancel := context.WithTimeout(

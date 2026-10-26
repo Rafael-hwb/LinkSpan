@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"linkspan/admin/internal/common/convention/errorcode"
 	"linkspan/admin/internal/common/convention/exception"
 	"linkspan/admin/internal/common/convention/result"
 	"linkspan/admin/internal/dto/req"
@@ -42,7 +41,7 @@ func (h *UserHandler) HasUsername(c *gin.Context) {
 	var Request req.UserHasUsernameReq
 
 	if err := c.ShouldBindQuery(&Request); err != nil {
-		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
+		_ = c.Error(exception.FromBindError(err))
 		c.Abort()
 		return
 	}
@@ -62,7 +61,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var request req.UserRegisterReq
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
+		_ = c.Error(exception.FromBindError(err))
 		c.Abort()
 		return
 	}
@@ -80,15 +79,15 @@ func (h *UserHandler) Register(c *gin.Context) {
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
-	var request *req.UserUpdateReq
+	var request req.UserUpdateReq
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
+		_ = c.Error(exception.FromBindError(err))
 		c.Abort()
 		return
 	}
 
-	if err := h.userService.Update(c.Request.Context(), *request); err != nil {
+	if err := h.userService.Update(c.Request.Context(), request); err != nil {
 		_ = c.Error(err)
 		c.Abort()
 		return
@@ -101,7 +100,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	var request req.UserLoginReq
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
+		_ = c.Error(exception.FromBindError(err))
 		c.Abort()
 		return
 	}
@@ -123,7 +122,7 @@ func (h *UserHandler) CheckLogin(c *gin.Context) {
 
 	if err := c.ShouldBindQuery(&request); err != nil {
 		_ = c.Error(
-			exception.NewServiceError(errorcode.ClientError),
+			exception.FromBindError(err),
 		)
 		c.Abort()
 		return
@@ -144,7 +143,7 @@ func (h *UserHandler) Logout(c *gin.Context) {
 	var request req.UserSessionReq
 
 	if err := c.ShouldBindQuery(&request); err != nil {
-		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
+		_ = c.Error(exception.FromBindError(err))
 		c.Abort()
 		return
 	}

@@ -15,7 +15,7 @@ func RequireLogin(session *cache.UserSession) gin.HandlerFunc {
 		token := c.GetHeader("token")
 
 		if username == "" || token == "" {
-			rejectLogin(c)
+			rejectLogin(c, errorcode.LoginRequired)
 			return
 		}
 
@@ -28,7 +28,7 @@ func RequireLogin(session *cache.UserSession) gin.HandlerFunc {
 		}
 
 		if !valid {
-			rejectLogin(c)
+			rejectLogin(c, errorcode.SessionInvalid)
 			return
 		}
 
@@ -43,10 +43,7 @@ func RequireLogin(session *cache.UserSession) gin.HandlerFunc {
 	}
 }
 
-func rejectLogin(c *gin.Context) {
-	err := exception.NewServiceError(errorcode.ClientError)
-	err.Message = "用户未登录或登录已过期"
-
-	_ = c.Error(err)
+func rejectLogin(c *gin.Context, code errorcode.ErrorCode) {
+	_ = c.Error(exception.NewServiceError(code))
 	c.Abort()
 }

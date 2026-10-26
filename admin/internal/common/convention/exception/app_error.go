@@ -22,3 +22,10 @@ func (e *ServiceError) Error() string {
 func (e *ServiceError) Unwrap() error {
 	return e.Cause
 }
+
+// WrapServiceError 保留原始原因，对外仍使用约定的错误码和消息。
+func WrapServiceError(code errorcode.ErrorCode, cause error) *ServiceError {
+	err := NewServiceError(code)
+	err.Cause = cause
+	return err
+}
