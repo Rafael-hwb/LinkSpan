@@ -71,3 +71,22 @@ func (s *UserSession) CreateOrRefresh(ctx context.Context, user SessionUser) (st
 		int64(userSessionTTL/time.Second),
 	).Text()
 }
+
+
+func (s *UserSession) DeleteIfValid(ctx context.Context, username string, token string) (bool, error) {
+	script := `
+		if redis.call('HEXISTS', KEYS[1], ARGV[1]) == 1 then
+			return redis.call('DEL', KEYS[1])
+		end
+
+		return 0
+	`
+	
+	deleted, err := s.client.Eval(ctx, script, []string{UserLoginKeyPrefix + username}, token).Int()
+
+	if err != nil {
+		return false, err
+	}
+
+	return deleted == 1, nil
+}
