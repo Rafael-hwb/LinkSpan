@@ -25,6 +25,8 @@ func Register(r *gin.Engine, userHandler *handler.UserHandler, requireLogin gin.
 
 	adminGroup.PUT("/user", requireLogin, userHandler.Update)
 
+	adminGroup.POST("/user/login", userHandler.Login)
+
 	adminGroup.GET("/user/check-login", userHandler.CheckLogin)
 
 	adminGroup.DELETE("/user/logout", userHandler.Logout)
