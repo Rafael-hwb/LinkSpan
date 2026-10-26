@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const encryptedPrefix = "enc:vi:"
+const encryptedPrefix = "enc:v1:"
 
 type FieldCipher struct {
 	aead cipher.AEAD
