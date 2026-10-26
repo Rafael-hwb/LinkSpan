@@ -100,7 +100,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 func (h *UserHandler) Login(c *gin.Context) {
 	var request req.UserLoginReq
 
-	if err := c.ShouldBindJSON(request); err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
 		c.Abort()
 		return
