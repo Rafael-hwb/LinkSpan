@@ -283,3 +283,14 @@ func (s *UserService) Login(ctx context.Context, request req.UserLoginReq) (*res
 		Token: token,
 	}, nil
 }
+
+
+func (s *UserService) CheckLogin(ctx context.Context, username string, token string) (bool, error) {
+	valid, err := s.userSession.Exists(ctx, username, token)
+
+	if err != nil {
+		return false, fmt.Errorf("检查登录状态失败: %w", err)
+	}	
+
+	return valid, nil
+}
