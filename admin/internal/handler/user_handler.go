@@ -79,7 +79,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 	)
 }
 
-
 func (h *UserHandler) Update(c *gin.Context) {
 	var request *req.UserUpdateReq
 
@@ -96,4 +95,25 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result.Success[any](nil))
+}
+
+func (h *UserHandler) Login(c *gin.Context) {
+	var request req.UserLoginReq
+
+	if err := c.ShouldBindJSON(request); err != nil {
+		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
+		c.Abort()
+		return
+	}
+
+	response, err := h.userService.Login(c.Request.Context(), request)
+
+	if err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, result.Success(response))
+
 }

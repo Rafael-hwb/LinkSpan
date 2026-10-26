@@ -235,14 +235,14 @@ func (s *UserService) Update(ctx context.Context, request req.UserUpdateReq) err
 func loginFailedError() *exception.ServiceError {
 	err := exception.NewServiceError(errorcode.ClientError)
 	err.Message = "用户名或密码错误"
-	return err	
+	return err
 }
 
 func (s *UserService) Login(ctx context.Context, request req.UserLoginReq) (*resp.UserLoginResp, error) {
 	if !registerUsernamePattern.MatchString(request.Username) || len(request.Password) > 72 {
 		return nil, exception.NewServiceError(errorcode.ClientError)
 	}
-	
+
 	user, err := s.userRepository.SelectForLogin(ctx, request.Username)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -252,7 +252,7 @@ func (s *UserService) Login(ctx context.Context, request req.UserLoginReq) (*res
 	if err != nil {
 		return nil, fmt.Errorf("查询登录用户失败: %w", err)
 	}
-	
+
 	if user.Password == "" {
 		return nil, loginFailedError()
 	}

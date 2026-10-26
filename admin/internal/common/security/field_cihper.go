@@ -43,7 +43,7 @@ func fieldAAD(field string) []byte {
 	return []byte("linkspan:user:" + field + ":v1")
 }
 
-//将正常字段值转换为带版本前缀的密文
+// 将正常字段值转换为带版本前缀的密文
 func (f *FieldCipher) Encrypt(field string, value string) (string, error) {
 	if value == "" {
 		return "", nil

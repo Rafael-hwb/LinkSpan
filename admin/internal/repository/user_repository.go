@@ -205,10 +205,9 @@ func (r *UserRepository) Insert(ctx context.Context,
 	return executed.RowsAffected()
 }
 
-
-func (r *UserRepository) UpdateProfile(ctx context.Context, tx *sql.Tx, 
+func (r *UserRepository) UpdateProfile(ctx context.Context, tx *sql.Tx,
 	username string, update entity.UserProfileUpdate) error {
-		table := UserTableName(username)
+	table := UserTableName(username)
 
 	lockSQL := fmt.Sprintf(`
 		SELECT id
@@ -255,7 +254,7 @@ func (r *UserRepository) UpdateProfile(ctx context.Context, tx *sql.Tx,
 
 		sets = append(sets, "mail = ?")
 		args = append(args, encrypted)
-	}	
+	}
 	if len(sets) == 0 {
 		return fmt.Errorf("没有需要更新的资料字段")
 	}
@@ -270,11 +269,10 @@ func (r *UserRepository) UpdateProfile(ctx context.Context, tx *sql.Tx,
 	)
 
 	_, err := tx.ExecContext(ctx, updateSQL, args...)
-	return err	
-	}
+	return err
+}
 
-
-//读取身份验证所需字段，不读取手机号和邮箱
+// 读取身份验证所需字段，不读取手机号和邮箱
 func (r *UserRepository) SelectForLogin(ctx context.Context, username string) (*entity.UserDO, error) {
 	table := UserTableName(username)
 

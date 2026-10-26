@@ -26,6 +26,7 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 	userRepository := repository.NewUserRepository(db, fieldCipher)
 	userBloom := cache.NewUserBloom(redisClient)
 	userLock := cache.NewUserRegisterLock(redisClient)
+	userSession := cache.NewUserSession(redisClient)
 
 	if err := userBloom.Prepare(ctx); err != nil {
 		return err
@@ -44,9 +45,9 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 		return fmt.Errorf("标记过滤器就绪失败: %w", err)
 	}
 
-	userService := service.NewUserService(userRepository, userBloom, userLock)
+	userService := service.NewUserService(userRepository, userBloom, userLock, userSession)
 	userHandler := handler.NewUserHandler(userService)
-	userSession := cache.NewUserSession(redisClient)
+
 	router.Register(r, userHandler, middleware.RequireLogin(userSession))
 
 	return nil

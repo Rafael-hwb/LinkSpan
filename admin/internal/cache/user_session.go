@@ -25,14 +25,14 @@ type UserSession struct {
 
 func NewUserSession(client *redis.Client) *UserSession {
 	return &UserSession{
-		client:  client,
+		client: client,
 	}
 }
 
-func (s *UserSession) Exists(ctx context.Context, username string, 
+func (s *UserSession) Exists(ctx context.Context, username string,
 	token string) (bool, error) {
-		return s.client.HExists(ctx, UserLoginKeyPrefix+username, 
-			token).Result()
+	return s.client.HExists(ctx, UserLoginKeyPrefix+username,
+		token).Result()
 }
 
 func (s *UserSession) CreateOrRefresh(ctx context.Context, user SessionUser) (string, error) {

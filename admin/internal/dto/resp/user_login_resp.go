@@ -1,5 +1,5 @@
 package resp
 
 type UserLoginResp struct {
-	Token string `json:"token"`	
+	Token string `json:"token"`
 }
