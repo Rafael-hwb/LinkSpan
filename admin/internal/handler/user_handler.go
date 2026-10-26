@@ -134,7 +134,7 @@ func (h *UserHandler) CheckLogin(c *gin.Context) {
 	if err != nil {
 		_ = c.Error(err)
 		c.Abort()
-		return		
+		return
 	}
 
 	c.JSON(http.StatusOK, result.Success(valid))
