@@ -117,3 +117,25 @@ func (h *UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, result.Success(response))
 
 }
+
+func (h *UserHandler) CheckLogin(c *gin.Context) {
+	var request req.UserSessionReq
+
+	if err := c.ShouldBindJSON(request); err != nil {
+		_ = c.Error(
+			exception.NewServiceError(errorcode.ClientError),
+		)
+		c.Abort()
+		return
+	}
+
+	valid, err := h.userService.CheckLogin(c.Request.Context(), request.Username, request.Token)
+
+	if err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return		
+	}
+
+	c.JSON(http.StatusOK, result.Success(valid))
+}
