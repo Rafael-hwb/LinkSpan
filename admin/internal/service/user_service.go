@@ -294,3 +294,18 @@ func (s *UserService) CheckLogin(ctx context.Context, username string, token str
 
 	return valid, nil
 }
+
+func (s *UserService) Logout(ctx context.Context, username string, token string) error {
+	deleted, err := s.userSession.DeleteIfValid(ctx, username, token)
+	if err != nil {
+		return fmt.Errorf("退出登录失败: %w", err)
+	}
+
+	if !deleted {
+		err := exception.NewServiceError(errorcode.ClientError)
+		err.Message = "用户Token不存在或用户未登录"
+		return err
+	}
+
+	return nil
+}
