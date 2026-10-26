@@ -121,7 +121,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 func (h *UserHandler) CheckLogin(c *gin.Context) {
 	var request req.UserSessionReq
 
-	if err := c.ShouldBindJSON(&request); err != nil {
+	if err := c.ShouldBindQuery(&request); err != nil {
 		_ = c.Error(
 			exception.NewServiceError(errorcode.ClientError),
 		)
@@ -143,7 +143,7 @@ func (h *UserHandler) CheckLogin(c *gin.Context) {
 func (h *UserHandler) Logout(c *gin.Context) {
 	var request req.UserSessionReq
 
-	if err := c.ShouldBindJSON(&request); err != nil {
+	if err := c.ShouldBindQuery(&request); err != nil {
 		_ = c.Error(exception.NewServiceError(errorcode.ClientError))
 		c.Abort()
 		return
