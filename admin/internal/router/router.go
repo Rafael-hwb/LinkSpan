@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine, userHandler *handler.UserHandler, requireLogin gin.HandlerFunc) {
+func Register(r *gin.Engine, userHandler *handler.UserHandler, groupHandler *handler.GroupHandler, requireLogin gin.HandlerFunc) {
 	adminGroup := r.Group("/api/short-link/admin/v1")
 
 	adminGroup.GET("/health", func(c *gin.Context) {
@@ -30,4 +30,6 @@ func Register(r *gin.Engine, userHandler *handler.UserHandler, requireLogin gin.
 	adminGroup.GET("/user/check-login", userHandler.CheckLogin)
 
 	adminGroup.DELETE("/user/logout", userHandler.Logout)
+
+	adminGroup.POST("/group", requireLogin, groupHandler.Save)
 }

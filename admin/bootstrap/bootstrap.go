@@ -48,7 +48,26 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 	userService := service.NewUserService(userRepository, userBloom, userLock, userSession)
 	userHandler := handler.NewUserHandler(userService)
 
-	router.Register(r, userHandler, middleware.RequireLogin(userSession))
+	groupRepository := repository.NewGroupRepository(db)
+	groupUniqueRepository := repository.NewGroupUniqueRepository(db)
+	groupLock := cache.NewGroupCreateLock(redisClient)
+	groupBloom := cache.NewGroupBloom(redisClient)
+
+	if err := groupBloom.Prepare(ctx); err != nil {
+		return err
+	}
+	if err := groupUniqueRepository.ForEachGID(ctx, func(gid string) error {
+		return groupBloom.Add(ctx, gid)
+	}); err != nil {
+		return fmt.Errorf("导入已有分组标识失败: %w", err)
+	}
+	if err := groupBloom.MarkReady(ctx); err != nil {
+		return err
+	}
+
+	groupService := service.NewGroupService(groupRepository, groupUniqueRepository, groupLock, groupBloom, 20)
+	groupHandler := handler.NewGroupHandler(groupService)
+	router.Register(r, userHandler, groupHandler, middleware.RequireLogin(userSession))
 
 	return nil
 }
