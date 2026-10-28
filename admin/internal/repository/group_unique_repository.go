@@ -19,7 +19,6 @@ func NewGroupUniqueRepository(db *sql.DB) *GroupUniqueRepository {
 	}
 }
 
-
 func (r *GroupUniqueRepository) Reserve(ctx context.Context, tx *sql.Tx, gid string) (bool, error) {
 	_, err := tx.ExecContext(ctx, `
 		INSERT INTO t_group_unique (gid)
@@ -34,7 +33,7 @@ func (r *GroupUniqueRepository) Reserve(ctx context.Context, tx *sql.Tx, gid str
 		return false, nil
 	}
 
-	return false, fmt.Errorf("登记分组标识失败: %w", err)	
+	return false, fmt.Errorf("登记分组标识失败: %w", err)
 }
 
 func (r *GroupUniqueRepository) ForEachGID(ctx context.Context, visit func(string) error) error {

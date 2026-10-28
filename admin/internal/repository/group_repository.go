@@ -17,7 +17,16 @@ func NewGroupRepository(db *sql.DB) *GroupRepository {
 	}
 }
 
-func (r *GroupRepository) WithTransaction(ctx context.Context, action func(*sql.Tx) error,) error {
+func (r *GroupRepository) CountByUsername(ctx context.Context, username string) (int, error) {
+	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE username = ? AND del_flag = 0`, GroupTableName(username))
+	var count int
+	if err := r.db.QueryRowContext(ctx, query, username).Scan(&count); err != nil {
+		return 0, fmt.Errorf("统计用户分组失败: %w", err)
+	}
+	return count, nil
+}
+
+func (r *GroupRepository) WithTransaction(ctx context.Context, action func(*sql.Tx) error) error {
 	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{
 		Isolation: sql.LevelReadCommitted,
 	})
@@ -37,8 +46,6 @@ func (r *GroupRepository) WithTransaction(ctx context.Context, action func(*sql.
 
 	return nil
 }
-
-
 
 func (r *GroupRepository) Insert(ctx context.Context, tx *sql.Tx, group entity.GroupDO) error {
 	query := fmt.Sprintf(`
