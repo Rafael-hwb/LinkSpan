@@ -32,4 +32,6 @@ func Register(r *gin.Engine, userHandler *handler.UserHandler, groupHandler *han
 	adminGroup.DELETE("/user/logout", userHandler.Logout)
 
 	adminGroup.POST("/group", requireLogin, groupHandler.Save)
+
+	adminGroup.GET("/group", requireLogin, groupHandler.List)
 }
