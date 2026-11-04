@@ -67,3 +67,36 @@ func (r *GroupRepository) Insert(ctx context.Context, tx *sql.Tx, group entity.G
 	}
 	return nil
 }
+
+func (r *GroupRepository) ListByUsername(ctx context.Context, username string) ([]entity.GroupDO, error) {
+	query := fmt.Sprintf(`
+		SELECT gid, name, username, COALESCE(sort_order, 0)
+		FROM %s
+		WHERE username = ?
+		  AND del_flag = 0
+		ORDER BY sort_order DESC, update_time DESC, id DESC
+	`, GroupTableName(username))
+
+	rows, err := r.db.QueryContext(ctx, query, username)
+	if err != nil {
+		return nil, fmt.Errorf("查询用户分组失败: %w", err)
+	}
+	defer rows.Close()
+
+	groups := make([]entity.GroupDO, 0)
+
+	for rows.Next() {
+		var group entity.GroupDO
+		if err := rows.Scan(&group.GID, &group.Name, &group.Username, &group.SortOrder); err != nil {
+			return nil, fmt.Errorf("读取分组记录失败: %w", err)
+		}
+
+		groups = append(groups, group)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("遍历分组记录失败: %w", err)
+	}
+
+	return groups, nil
+}
