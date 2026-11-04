@@ -10,6 +10,7 @@ import (
 	"linkspan/admin/internal/common/convention/exception"
 	"linkspan/admin/internal/dao/entity"
 	"linkspan/admin/internal/dto/req"
+	"linkspan/admin/internal/dto/resp"
 	"linkspan/admin/internal/repository"
 	"linkspan/admin/internal/toolkit"
 	"log"
@@ -152,4 +153,31 @@ func (s *GroupService) recordGroupGID(gid string) {
 	if err := s.groupBloom.Add(ctx, gid); err != nil {
 		log.Printf("分组已创建，但过滤器同步失败 gid=%s error=%v", gid, err)
 	}
+}
+
+func (s *GroupService) List(ctx context.Context) ([]resp.GroupResp, error) {
+	username, ok := usercontext.Username(ctx)
+	if !ok {
+		return nil, exception.NewServiceError(errorcode.LoginRequired)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	
+	groups, err := s.groupRepository.ListByUsername(ctx, username)
+	if err != nil {
+		return  nil, err
+	}
+
+	response := make([]resp.GroupResp, 0, len(groups))
+
+	for _, group := range groups {
+		response = append(response, resp.GroupResp{
+			GID:       group.GID,
+			Name:      group.Name,
+			SortOrder: group.SortOrder,
+		})		
+	}
+
+	return response, nil
 }
