@@ -33,3 +33,14 @@ func (h *GroupHandler) Save(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, result.Success[any](nil))
 }
+
+func (h *GroupHandler) List(c *gin.Context) {
+	response, err := h.groupService.List(c.Request.Context())
+	if err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, result.Success(response))
+}
