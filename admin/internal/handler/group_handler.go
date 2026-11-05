@@ -57,7 +57,7 @@ func (h *GroupHandler) UpdateName(c *gin.Context) {
 	if err := h.groupService.UpdateName(c.Request.Context(), request); err != nil {
 		_ = c.Error(err)
 		c.Abort()
-		return		
+		return
 	}
-	c.JSON(http.StatusOK, result.Success[any](nil))	
+	c.JSON(http.StatusOK, result.Success[any](nil))
 }

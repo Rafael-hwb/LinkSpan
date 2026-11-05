@@ -182,9 +182,8 @@ func (s *GroupService) List(ctx context.Context) ([]resp.GroupResp, error) {
 	return response, nil
 }
 
-
 func (s *GroupService) UpdateName(ctx context.Context, request req.GroupUpdateReq) error {
-	username, ok := usercontext.Username(ctx) 
+	username, ok := usercontext.Username(ctx)
 	if !ok {
 		return exception.NewServiceError(errorcode.LoginRequired)
 	}

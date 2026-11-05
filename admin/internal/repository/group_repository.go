@@ -101,7 +101,6 @@ func (r *GroupRepository) ListByUsername(ctx context.Context, username string) (
 	return groups, nil
 }
 
-
 func (r *GroupRepository) UpdateName(ctx context.Context, username string, gid string, name string) error {
 	groupTableName := GroupTableName(gid)
 
@@ -114,8 +113,8 @@ func (r *GroupRepository) UpdateName(ctx context.Context, username string, gid s
 	`, groupTableName)
 
 	if _, err := r.db.ExecContext(ctx, query, name, username, gid); err != nil {
-		return fmt.Errorf("修改分组名称失败: %w", err) 
+		return fmt.Errorf("修改分组名称失败: %w", err)
 	}
-	
+
 	return nil
 }
