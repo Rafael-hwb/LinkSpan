@@ -34,4 +34,6 @@ func Register(r *gin.Engine, userHandler *handler.UserHandler, groupHandler *han
 	adminGroup.POST("/group", requireLogin, groupHandler.Save)
 
 	adminGroup.GET("/group", requireLogin, groupHandler.List)
+
+	adminGroup.PUT("/group", requireLogin, groupHandler.UpdateName)
 }
