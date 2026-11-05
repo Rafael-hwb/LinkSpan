@@ -44,3 +44,20 @@ func (h *GroupHandler) List(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result.Success(response))
 }
+
+func (h *GroupHandler) UpdateName(c *gin.Context) {
+	var request req.GroupUpdateReq
+
+	if err := c.ShouldBindJSON(request); err != nil {
+		_ = c.Error(exception.FromBindError(err))
+		c.Abort()
+		return
+	}
+
+	if err := h.groupService.UpdateName(c.Request.Context(), request); err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return		
+	}
+	c.JSON(http.StatusOK, result.Success[any](nil))	
+}
