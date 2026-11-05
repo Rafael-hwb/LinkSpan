@@ -102,7 +102,7 @@ func (r *GroupRepository) ListByUsername(ctx context.Context, username string) (
 }
 
 func (r *GroupRepository) UpdateName(ctx context.Context, username string, gid string, name string) error {
-	groupTableName := GroupTableName(gid)
+	groupTableName := GroupTableName(username)
 
 	query := fmt.Sprintf(`
 		UPDATE %s
