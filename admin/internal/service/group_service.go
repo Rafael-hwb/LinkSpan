@@ -163,10 +163,10 @@ func (s *GroupService) List(ctx context.Context) ([]resp.GroupResp, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	
+
 	groups, err := s.groupRepository.ListByUsername(ctx, username)
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
 
 	response := make([]resp.GroupResp, 0, len(groups))
@@ -176,7 +176,7 @@ func (s *GroupService) List(ctx context.Context) ([]resp.GroupResp, error) {
 			GID:       group.GID,
 			Name:      group.Name,
 			SortOrder: group.SortOrder,
-		})		
+		})
 	}
 
 	return response, nil
