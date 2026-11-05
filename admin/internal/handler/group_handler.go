@@ -48,7 +48,7 @@ func (h *GroupHandler) List(c *gin.Context) {
 func (h *GroupHandler) UpdateName(c *gin.Context) {
 	var request req.GroupUpdateReq
 
-	if err := c.ShouldBindJSON(request); err != nil {
+	if err := c.ShouldBindJSON(&request); err != nil {
 		_ = c.Error(exception.FromBindError(err))
 		c.Abort()
 		return
