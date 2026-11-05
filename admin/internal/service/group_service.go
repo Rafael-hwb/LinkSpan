@@ -181,3 +181,22 @@ func (s *GroupService) List(ctx context.Context) ([]resp.GroupResp, error) {
 
 	return response, nil
 }
+
+
+func (s *GroupService) UpdateName(ctx context.Context, request req.GroupUpdateReq) error {
+	username, ok := usercontext.Username(ctx) 
+	if !ok {
+		return exception.NewServiceError(errorcode.LoginRequired)
+	}
+
+	name := strings.TrimSpace(request.Name)
+
+	if name == "" || utf8.RuneCountInString(name) > 64 {
+		return exception.NewServiceError(errorcode.GroupNameInvalid)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	return s.groupRepository.UpdateName(ctx, username, request.GID, name)
+}
