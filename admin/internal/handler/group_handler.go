@@ -45,6 +45,21 @@ func (h *GroupHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, result.Success(response))
 }
 
+func (h *GroupHandler) Delete(c *gin.Context) {
+	var request req.GroupDeleteReq
+	if err := c.ShouldBindQuery(&request); err != nil {
+		_ = c.Error(exception.FromBindError(err))
+		c.Abort()
+		return
+	}
+	if err := h.groupService.Delete(c.Request.Context(), request); err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, result.Success[any](nil))
+}
+
 func (h *GroupHandler) UpdateName(c *gin.Context) {
 	var request req.GroupUpdateReq
 

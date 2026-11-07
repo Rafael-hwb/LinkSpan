@@ -182,6 +182,17 @@ func (s *GroupService) List(ctx context.Context) ([]resp.GroupResp, error) {
 	return response, nil
 }
 
+func (s *GroupService) Delete(ctx context.Context, request req.GroupDeleteReq) error {
+	username, ok := usercontext.Username(ctx)
+	if !ok {
+		return exception.NewServiceError(errorcode.LoginRequired)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	return s.groupRepository.DeleteByGID(ctx, username, request.GID)
+}
+
 func (s *GroupService) UpdateName(ctx context.Context, request req.GroupUpdateReq) error {
 	username, ok := usercontext.Username(ctx)
 	if !ok {

@@ -101,6 +101,19 @@ func (r *GroupRepository) ListByUsername(ctx context.Context, username string) (
 	return groups, nil
 }
 
+func (r *GroupRepository) DeleteByGID(ctx context.Context, username, gid string) error {
+	query := fmt.Sprintf(`
+		UPDATE %s
+		SET del_flag = 1, update_time = NOW()
+		WHERE username = ? AND gid = ? AND del_flag = 0
+	`, GroupTableName(username))
+
+	if _, err := r.db.ExecContext(ctx, query, username, gid); err != nil {
+		return fmt.Errorf("删除分组失败: %w", err)
+	}
+	return nil
+}
+
 func (r *GroupRepository) UpdateName(ctx context.Context, username string, gid string, name string) error {
 	groupTableName := GroupTableName(username)
 
