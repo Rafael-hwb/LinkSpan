@@ -144,6 +144,6 @@ func (r *GroupRepository) UpdateSortOrder(ctx context.Context, tx *sql.Tx, usern
 	if _, err := tx.ExecContext(ctx, query, sortOrder, username, gid); err != nil {
 		return fmt.Errorf("更新分组排序失败: %w", err)
 	}
-	
+
 	return nil
 }

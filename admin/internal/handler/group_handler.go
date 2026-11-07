@@ -77,7 +77,6 @@ func (h *GroupHandler) UpdateName(c *gin.Context) {
 	c.JSON(http.StatusOK, result.Success[any](nil))
 }
 
-
 func (h *GroupHandler) Sort(c *gin.Context) {
 	var items []req.GroupSortReq
 
@@ -92,6 +91,6 @@ func (h *GroupHandler) Sort(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, result.Success[any](nil))
 }
