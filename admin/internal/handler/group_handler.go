@@ -76,3 +76,22 @@ func (h *GroupHandler) UpdateName(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, result.Success[any](nil))
 }
+
+
+func (h *GroupHandler) Sort(c *gin.Context) {
+	var items []req.GroupSortReq
+
+	if err := c.ShouldBindJSON(&items); err != nil {
+		_ = c.Error(exception.FromBindError(err))
+		c.Abort()
+		return
+	}
+
+	if err := h.groupService.Sort(c.Request.Context(), items); err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return
+	}
+	
+	c.JSON(http.StatusOK, result.Success[any](nil))
+}
