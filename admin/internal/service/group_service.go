@@ -210,3 +210,41 @@ func (s *GroupService) UpdateName(ctx context.Context, request req.GroupUpdateRe
 
 	return s.groupRepository.UpdateName(ctx, username, request.GID, name)
 }
+
+func (s *GroupService) Sort(ctx context.Context, items []req.GroupSortReq) error {
+	username, ok := usercontext.Username(ctx)
+	if !ok {
+		return exception.NewServiceError(errorcode.LoginRequired)
+	}
+
+	if len(items) == 0 {
+		return exception.NewServiceError(errorcode.ParameterInvalid)
+	}
+
+	seen := make(map[string]struct{}, len(items))
+
+	for _, item := range items {
+		if item.GID == "" || len(item.GID) > 32 || item.SortOrder == nil {
+			return exception.NewServiceError(errorcode.ParameterInvalid)
+		}
+
+		if _, exists := seen[item.GID]; exists {
+			return exception.NewServiceError(errorcode.ParameterInvalid)
+		}
+
+		seen[item.GID] = struct{}{}
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	return s.groupRepository.WithTransaction(ctx, func(tx *sql.Tx) error {
+		for _, item := range items {
+			if err := s.groupRepository.UpdateSortOrder(ctx, tx, username, item.GID, *item.SortOrder); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
