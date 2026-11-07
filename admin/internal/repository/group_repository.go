@@ -131,3 +131,19 @@ func (r *GroupRepository) UpdateName(ctx context.Context, username string, gid s
 
 	return nil
 }
+
+func (r *GroupRepository) UpdateSortOrder(ctx context.Context, tx *sql.Tx, username, gid string, sortOrder int32) error {
+	query := fmt.Sprintf(`
+		UPDATE %s
+		SET sort_order = ?, update_time = NOW()
+		WHERE username = ?
+		  AND gid = ?
+		  AND del_flag = 0
+	`, GroupTableName(username))
+
+	if _, err := tx.ExecContext(ctx, query, sortOrder, username, gid); err != nil {
+		return fmt.Errorf("更新分组排序失败: %w", err)
+	}
+	
+	return nil
+}
