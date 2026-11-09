@@ -7,6 +7,7 @@ import (
 	"linkspan/admin/internal/cache"
 	"linkspan/admin/internal/handler"
 	"linkspan/admin/internal/middleware"
+	"linkspan/admin/internal/remote"
 	"linkspan/admin/internal/repository"
 	"linkspan/admin/internal/router"
 	"linkspan/admin/internal/service"
@@ -67,7 +68,9 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 
 	groupService := service.NewGroupService(groupRepository, groupUniqueRepository, groupLock, groupBloom, 20)
 	groupHandler := handler.NewGroupHandler(groupService)
-	router.Register(r, userHandler, groupHandler, middleware.RequireLogin(userSession))
+	shortLinkService := service.NewShortLinkService(groupService, remote.NewShortLinkClient())
+	shortLinkHandler := handler.NewShortLinkHandler(shortLinkService)
+	router.Register(r, userHandler, groupHandler, shortLinkHandler, middleware.RequireLogin(userSession))
 
 	return nil
 }
