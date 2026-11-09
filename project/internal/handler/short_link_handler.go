@@ -45,3 +45,23 @@ func writeCreateFailure(c *gin.Context, code, message string) {
 		"code": code, "message": message, "data": nil, "requestId": nil, "success": false,
 	})
 }
+
+func (h *ShortLinkHandler) Page(c *gin.Context) {
+	var request req.ShortLinkPageReq
+	if err := c.ShouldBindQuery(&request); err != nil {
+		writeCreateFailure(c, "A000003", "请检查分页参数")
+		return
+	}
+
+	response, err := h.service.Page(c.Request.Context(), request)
+	if err != nil {
+		log.Printf("分页查询短链接失败: %v", err)
+		writeCreateFailure(c, "B000001", "系统执行错误")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": "0", "message": "", "data": response,
+		"requestId": nil, "success": true,
+	})
+}
