@@ -144,6 +144,7 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 		Mail:     request.Mail,
 	}
 
+	var defaultGID string
 	err = s.userRepository.WithTransaction(
 		ctx,
 		func(tx *sql.Tx) error {
@@ -161,6 +162,12 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 					errorcode.UserSaveError,
 				)
 			}
+
+			gid, err := s.groupService.InsertGroupInTx(ctx, tx, request.Username, "默认分组")
+			if err != nil {
+				return err
+			}
+			defaultGID = gid
 
 			// 先更新过滤器，成功后才尝试提交MySQL事务
 			if err := s.userBloom.Add(
@@ -184,6 +191,7 @@ func (s *UserService) Register(ctx context.Context, request req.UserRegisterReq)
 		return fmt.Errorf("注册用户失败: %w", err)
 	}
 
+	s.groupService.recordGroupGID(defaultGID)
 	return nil
 }
 
