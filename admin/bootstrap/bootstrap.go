@@ -46,8 +46,7 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 		return fmt.Errorf("标记过滤器就绪失败: %w", err)
 	}
 
-	userService := service.NewUserService(userRepository, userBloom, userLock, userSession)
-	userHandler := handler.NewUserHandler(userService)
+	
 
 	groupRepository := repository.NewGroupRepository(db)
 	groupUniqueRepository := repository.NewGroupUniqueRepository(db)
@@ -68,6 +67,10 @@ func RegisterRoutes(ctx context.Context, r *gin.Engine,
 
 	groupService := service.NewGroupService(groupRepository, groupUniqueRepository, groupLock, groupBloom, 20)
 	groupHandler := handler.NewGroupHandler(groupService)
+
+	userService := service.NewUserService(userRepository, userBloom, userLock, userSession, groupService)
+	userHandler := handler.NewUserHandler(userService)
+
 	shortLinkService := service.NewShortLinkService(groupService, remote.NewShortLinkClient())
 	shortLinkHandler := handler.NewShortLinkHandler(shortLinkService)
 	router.Register(r, userHandler, groupHandler, shortLinkHandler, middleware.RequireLogin(userSession))

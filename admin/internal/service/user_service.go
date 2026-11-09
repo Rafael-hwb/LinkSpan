@@ -27,16 +27,18 @@ type UserService struct {
 	userBloom      *cache.UserBloom
 	userLock       *cache.UserRegisterLock
 	userSession    *cache.UserSession
+	groupService   *GroupService
 }
 
 func NewUserService(userRepository *repository.UserRepository,
 	userBloom *cache.UserBloom, userLock *cache.UserRegisterLock,
-	usersession *cache.UserSession) *UserService {
+	usersession *cache.UserSession, groupservice *GroupService) *UserService {
 	return &UserService{
 		userRepository: userRepository,
 		userBloom:      userBloom,
 		userLock:       userLock,
 		userSession:    usersession,
+		groupService:   groupservice,
 	}
 }
 
