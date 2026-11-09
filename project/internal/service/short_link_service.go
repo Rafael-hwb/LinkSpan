@@ -111,3 +111,33 @@ func buildShortLink(request req.ShortLinkCreateReq) (entity.ShortLinkDO, error) 
 		ValidDateType: *request.ValidDateType, ValidDate: validDate, Describe: request.Describe,
 	}, nil
 }
+
+
+func (s *ShortLinkService) Page(ctx context.Context, request req.ShortLinkPageReq) (resp.ShortLinkPageResp, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	size := int64(request.Size)
+	offset := (int64(request.Current) - 1) * size
+	links, total, err := s.links.PageByGID(ctx, request.GID, size, offset)
+
+	if err != nil {
+		return resp.ShortLinkPageResp{}, err
+	}
+
+	result := resp.ShortLinkPageResp{
+		Records: make([]resp.ShortLinkPageItem, 0, len(links)),
+		Total: total, Current: request.Current, Size: request.Size,
+	}	
+
+	for _, link := range links {
+		result.Records = append(result.Records, resp.ShortLinkPageItem{
+			GID:          link.GID,
+			FullShortURL: "http://" + link.FullShortURL,
+			OriginURL:    link.OriginURL,
+			Describe:     link.Describe,
+		})
+	}
+
+	return result, nil
+}
