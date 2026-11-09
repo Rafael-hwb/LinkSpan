@@ -91,27 +91,16 @@ func (s *GroupService) Save(ctx context.Context, request req.GroupSaveReq) error
 // createGroup 将全局 gid 登记和分组写入放在同一 MySQL 事务中。
 func (s *GroupService) createGroup(ctx context.Context, username, name string) (string, error) {
 	var gid string
+
 	err := s.groupRepository.WithTransaction(ctx, func(tx *sql.Tx) error {
-		for i := 0; i < 10; i++ {
-			candidate, err := s.saveGroupUniqueReturnGID(ctx, tx)
-			if err != nil {
-				return err
-			}
-			if candidate == "" {
-				continue
-			}
-			group := entity.GroupDO{GID: candidate, Name: name, Username: username, SortOrder: 0}
-			if err := s.groupRepository.Insert(ctx, tx, group); err != nil {
-				return err
-			}
-			gid = candidate
-			return nil
-		}
-		return exception.NewServiceError(errorcode.GroupGIDGenerateFailed)
+		var err error
+		gid, err = s.InsertGroupInTx(ctx, tx, username, name)
+		return err
 	})
 	if err != nil {
 		return "", err
 	}
+
 	return gid, nil
 }
 
@@ -265,4 +254,32 @@ func (s *GroupService) RequireOwnedGroup(ctx context.Context, gid string) error 
 	}
 
 	return nil
+}
+
+
+func (s *GroupService) InsertGroupInTx(ctx context.Context, tx *sql.Tx, username, name string) (string, error) {
+	for attempt := 0; attempt < 10; attempt++ {
+		gid, err := s.saveGroupUniqueReturnGID(ctx, tx)
+		if err != nil {
+			return "", err
+		}
+		if gid == "" {
+			continue
+		}
+
+		group := entity.GroupDO{
+			GID:        gid,
+			Name:       name,
+			Username:   username,
+			SortOrder:  0,
+		}
+
+		if err := s.groupRepository.Insert(ctx, tx, group); err != nil {
+			return "", err
+		}
+
+		return gid, nil
+	}
+
+	return "", exception.NewServiceError(errorcode.GroupGIDGenerateFailed)
 }
