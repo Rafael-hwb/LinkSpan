@@ -248,3 +248,21 @@ func (s *GroupService) Sort(ctx context.Context, items []req.GroupSortReq) error
 		return nil
 	})
 }
+
+func (s *GroupService) RequireOwnedGroup(ctx context.Context, gid string) error {
+	username, ok := usercontext.Username(ctx)
+	if !ok {
+		return exception.NewServiceError(errorcode.LoginRequired)
+	}
+
+	allowed, err := s.groupRepository.ExistsActiveByUsernameAndGID(ctx, username, gid)
+	if err != nil {
+		return err
+	}
+
+	if !allowed {
+		return exception.NewServiceError(errorcode.GroupUnavailable)
+	}
+
+	return nil
+}
