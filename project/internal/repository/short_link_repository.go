@@ -81,3 +81,36 @@ func (r *ShortLinkRepository) Insert(ctx context.Context, tx *sql.Tx, link entit
 
 	return nil
 }
+
+
+func (r *ShortLinkRepository) PageByGID(ctx context.Context, gid string, limit, offset int64) ([]entity.ShortLinkDO, int64, error) {
+	filter := fmt.Sprintf("FROM %s WHERE gid = ? AND enable_status = 0 AND del_flag = 0", ShortLinkTableName(gid))
+
+	var total int64
+	if err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) "+filter, gid).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("统计分组短链接失败: %w", err)
+	}
+
+	query := "SELECT gid, full_short_url, origin_url, COALESCE(`describe`, '') " + filter +
+		" ORDER BY create_time DESC, id DESC LIMIT ? OFFSET ?"
+
+	rows, err := r.db.QueryContext(ctx, query, gid, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("分页查询短链接失败: %w", err)
+	}
+	defer rows.Close()
+
+	links := make([]entity.ShortLinkDO, 0)
+	for rows.Next() {
+		var link entity.ShortLinkDO
+		if err := rows.Scan(&link.GID, &link.FullShortURL, &link.OriginURL, &link.Describe); err != nil {
+			return nil, 0, fmt.Errorf("读取短链接失败: %w", err)
+		}
+		links = append(links, link)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("遍历短链接失败: %w", err)
+	}
+
+	return links, total, nil
+}
