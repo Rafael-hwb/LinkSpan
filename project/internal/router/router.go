@@ -18,4 +18,6 @@ func Register(r *gin.Engine, shortLinkHandler *handler.ShortLinkHandler) {
 		})
 	})
 	projectGroup.POST("/create", shortLinkHandler.Create)
+
+	projectGroup.GET("/page", shortLinkHandler.Page)
 }
