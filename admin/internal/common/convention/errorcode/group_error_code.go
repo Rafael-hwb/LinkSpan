@@ -11,7 +11,7 @@ var (
 		Message: "已达到分组数量上限",
 	}
 
-	GroupUnavailable = ErrorCode {
+	GroupUnavailable = ErrorCode{
 		Code:    "A000502",
 		Message: "分组不可操作",
 	}

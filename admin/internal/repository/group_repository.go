@@ -161,5 +161,5 @@ func (r *GroupRepository) ExistsActiveByUsernameAndGID(ctx context.Context, user
 		return false, fmt.Errorf("查询分组归属失败: %w", err)
 	}
 
-	return exists, nil	
+	return exists, nil
 }
