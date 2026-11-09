@@ -147,3 +147,19 @@ func (r *GroupRepository) UpdateSortOrder(ctx context.Context, tx *sql.Tx, usern
 
 	return nil
 }
+
+func (r *GroupRepository) ExistsActiveByUsernameAndGID(ctx context.Context, username, gid string) (bool, error) {
+	query := fmt.Sprintf(`
+		SELECT EXISTS (
+			SELECT 1 FROM %s
+			WHERE username = ? AND gid = ? AND del_flag = 0
+		)
+	`, GroupTableName(username))
+
+	var exists bool
+	if err := r.db.QueryRowContext(ctx, query, username, gid).Scan(&exists); err != nil {
+		return false, fmt.Errorf("查询分组归属失败: %w", err)
+	}
+
+	return exists, nil	
+}
