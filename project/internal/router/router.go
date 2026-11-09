@@ -3,10 +3,12 @@ package router
 import (
 	"net/http"
 
+	"linkspan/project/internal/handler"
+
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine) {
+func Register(r *gin.Engine, shortLinkHandler *handler.ShortLinkHandler) {
 	projectGroup := r.Group("/api/short-link/v1")
 
 	projectGroup.GET("health", func(c *gin.Context) {
@@ -15,4 +17,5 @@ func Register(r *gin.Engine) {
 			"status": "ok",
 		})
 	})
+	projectGroup.POST("/create", shortLinkHandler.Create)
 }
