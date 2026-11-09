@@ -40,7 +40,7 @@ func TestGroupRouteRejectsRequestsBeforeStorage(t *testing.T) {
 					c.Next()
 				}
 			}
-			Register(r, &handler.UserHandler{}, handler.NewGroupHandler(&service.GroupService{}), auth)
+			Register(r, &handler.UserHandler{}, handler.NewGroupHandler(&service.GroupService{}), &handler.ShortLinkHandler{}, auth)
 			request := httptest.NewRequest(http.MethodPost, "/api/short-link/admin/v1/group", strings.NewReader(tt.body))
 			request.Header.Set("Content-Type", "application/json")
 			response := httptest.NewRecorder()

@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine, userHandler *handler.UserHandler, groupHandler *handler.GroupHandler, requireLogin gin.HandlerFunc) {
+func Register(r *gin.Engine, userHandler *handler.UserHandler, groupHandler *handler.GroupHandler,shortLinkHandler *handler.ShortLinkHandler, requireLogin gin.HandlerFunc) {
 	adminGroup := r.Group("/api/short-link/admin/v1")
 
 	adminGroup.GET("/health", func(c *gin.Context) {
@@ -40,4 +40,8 @@ func Register(r *gin.Engine, userHandler *handler.UserHandler, groupHandler *han
 	adminGroup.DELETE("/group", requireLogin, groupHandler.Delete)
 
 	adminGroup.POST("/group/sort", requireLogin, groupHandler.Sort)
+
+	adminGroup.POST("/create", requireLogin, shortLinkHandler.Create)
+	
+	adminGroup.GET("/page", requireLogin, shortLinkHandler.Page)
 }
