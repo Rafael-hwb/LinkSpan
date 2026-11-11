@@ -30,6 +30,8 @@ func NewShortLinkService(links *repository.ShortLinkRepository, routes *reposito
 	return &ShortLinkService{links: links, routes: routes}
 }
 
+var ErrShortLinkNotFound = errors.New("short link not found")
+
 func (s *ShortLinkService) Create(ctx context.Context, request req.ShortLinkCreateReq) (resp.ShortLinkCreateResp, error) {
 	var response resp.ShortLinkCreateResp
 	link, err := buildShortLink(request)
@@ -171,4 +173,30 @@ func (s *ShortLinkService) Update(ctx context.Context, request req.ShortLinkUpda
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return s.links.Update(ctx, link)
+}
+
+func (s * ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	route, err := s.routes.FindByFullShortURL(ctx, fullShortURL)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrShortLinkNotFound
+		}
+		return "", err		
+	}
+
+	link, err := s.links.FindEnabledByGIDAndFullShortURL(ctx, route.GID, route.FullShortURL)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrShortLinkNotFound
+		}
+		return "", err
+	}
+	if link.ValidDate != nil && link.ValidDate.Before(time.Now()) {
+		return "", ErrShortLinkNotFound
+	}
+	return link.OriginURL, nil
 }
