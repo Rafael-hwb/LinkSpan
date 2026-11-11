@@ -17,10 +17,16 @@ func main() {
 	}
 	defer db.Close()
 
+	redisClient, err := adminbootstrap.OpenRedis()
+	if err != nil {
+		log.Fatalf("连接 Redis 失败: %v", err)
+	}
+	defer redisClient.Close()
+
 	r := gin.New()
 	r.Use(middleware.RequestLogger(), middleware.ErrorHandler())
 
-	bootstrap.RegisterRoutes(r, db)
+	bootstrap.RegisterRoutes(r, db, redisClient)
 
 	if err := r.Run("127.0.0.1:8002"); err != nil {
 		log.Fatalf("启动短链接核心服务失败: %v", err)
