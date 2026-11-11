@@ -20,7 +20,7 @@ import (
 func TestShortLinkErrorResponses(t *testing.T) {
 	engine := gin.New()
 	engine.Use(middleware.ErrorHandler())
-	router.Register(engine, handler.NewShortLinkHandler(service.NewShortLinkService(nil, nil)))
+	router.Register(engine, handler.NewShortLinkHandler(service.NewShortLinkService(nil, nil, nil)))
 	engine.GET("/timeout", func(c *gin.Context) { _ = c.Error(context.DeadlineExceeded) })
 	engine.GET("/failure", func(c *gin.Context) { _ = c.Error(errors.New("internal detail")) })
 	engine.GET("/panic", func(c *gin.Context) { panic("internal detail") })
