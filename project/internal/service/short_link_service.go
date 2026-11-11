@@ -141,3 +141,35 @@ func (s *ShortLinkService) Page(ctx context.Context, request req.ShortLinkPageRe
 
 	return result, nil
 }
+
+func (s *ShortLinkService) Update(ctx context.Context, request req.ShortLinkUpdateReq) error {
+	gid := strings.TrimSpace(request.GID)
+	if gid != strings.TrimSpace(request.OriginGID) {
+		return fmt.Errorf("%w: 本节仅支持同一分组内修改", ErrInvalidCreateRequest)
+	}
+
+	const prefix = "localhost:8002/"
+	fullShortURL := strings.TrimPrefix(strings.TrimSpace(request.FullShortURL), "http://")
+	suffix, ok := strings.CutPrefix(fullShortURL, prefix)
+	if !ok || len(suffix) != 8 {
+		return fmt.Errorf("%w: 短地址格式错误", ErrInvalidCreateRequest)
+	}
+	if _, err := hex.DecodeString(suffix); err != nil || suffix != strings.ToLower(suffix) {
+		return fmt.Errorf("%w: 短地址后缀格式错误", ErrInvalidCreateRequest)
+	}
+
+	createdType := 0
+	link, err := buildShortLink(req.ShortLinkCreateReq{
+		Domain: "localhost:8002", OriginURL: request.OriginURL, GID: gid,
+		CreatedType: &createdType, ValidDateType: request.ValidDateType,
+		ValidDate: request.ValidDate, Describe: request.Describe,
+	})
+	if err != nil {
+		return err
+	}
+	link.FullShortURL = fullShortURL
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	return s.links.Update(ctx, link)
+}
