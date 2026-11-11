@@ -114,3 +114,19 @@ func (r *ShortLinkRepository) PageByGID(ctx context.Context, gid string, limit, 
 
 	return links, total, nil
 }
+func (r *ShortLinkRepository) Update(ctx context.Context, link entity.ShortLinkDO) error {
+	query := fmt.Sprintf(`
+		UPDATE %s
+		SET origin_url = ?, valid_date_type = ?, valid_date = ?, %s = ?, update_time = NOW()
+		WHERE gid = ? AND full_short_url = ? AND enable_status = 0 AND del_flag = 0
+	`, ShortLinkTableName(link.GID), "`describe`")
+	
+	_, err := r.db.ExecContext(ctx, query, link.OriginURL, link.ValidDateType,
+		link.ValidDate, link.Describe, link.GID, link.FullShortURL)
+	
+	if err != nil {
+		return fmt.Errorf("修改短链接失败: %w", err)
+	}
+	
+	return nil
+}
