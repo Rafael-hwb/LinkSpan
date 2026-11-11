@@ -14,8 +14,9 @@ const (
 	gotoCacheKeyPrefix = "short-link:goto:"
 	gotoLockKeyPrefix  = "short-link:lock:goto:"
 	gotoLockTTL        = 30 * time.Second
-	gotoLockRetry = 50 * time.Millisecond
+	gotoLockRetry      = 50 * time.Millisecond
 )
+
 type ShortLinkGotoCache struct {
 	client *redis.Client
 }
@@ -40,7 +41,7 @@ func (c *ShortLinkGotoCache) Get(ctx context.Context, fullShortURL string) (stri
 		return "", false, nil
 	}
 	if err != nil {
-		return "",false, fmt.Errorf("读取短链接跳转缓存失败: %w", err)
+		return "", false, fmt.Errorf("读取短链接跳转缓存失败: %w", err)
 	}
 	return value, true, nil
 }
@@ -64,7 +65,7 @@ func (c *ShortLinkGotoCache) Lock(ctx context.Context, fullShortURL string) (str
 		acquired, err := c.client.SetNX(ctx, key, token, gotoLockTTL).Result()
 		if err != nil {
 			return "", fmt.Errorf("获取短链接跳转锁失败: %w", err)
-		} 
+		}
 		if acquired {
 			return token, nil
 		}
@@ -75,7 +76,7 @@ func (c *ShortLinkGotoCache) Lock(ctx context.Context, fullShortURL string) (str
 			timer.Stop()
 			return "", ctx.Err()
 		case <-timer.C:
-		}		
+		}
 	}
 }
 

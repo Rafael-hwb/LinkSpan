@@ -7,5 +7,5 @@ type ShortLinkUpdateReq struct {
 	OriginURL     string  `json:"originUrl" binding:"required,max=1024"`
 	ValidDateType *int    `json:"validDateType" binding:"required,oneof=0 1"`
 	ValidDate     *string `json:"validDate"`
-	Describe      string  `json:"describe" binding:"max=1024"`	
+	Describe      string  `json:"describe" binding:"max=1024"`
 }

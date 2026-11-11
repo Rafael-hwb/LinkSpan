@@ -30,9 +30,9 @@ type ShortLinkService struct {
 
 func NewShortLinkService(links *repository.ShortLinkRepository, routes *repository.ShortLinkGotoRepository, cache *cache.ShortLinkGotoCache) *ShortLinkService {
 	return &ShortLinkService{
-		links: links, 
+		links:  links,
 		routes: routes,
-		cache: cache,
+		cache:  cache,
 	}
 }
 
@@ -181,13 +181,13 @@ func (s *ShortLinkService) Update(ctx context.Context, request req.ShortLinkUpda
 	return s.links.Update(ctx, link)
 }
 
-func (s * ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string) (string, error) {
+func (s *ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	if origin, ok , err := s.cache.Get(ctx, fullShortURL); err != nil {
+	if origin, ok, err := s.cache.Get(ctx, fullShortURL); err != nil {
 		return "", err
-	}else if ok {
+	} else if ok {
 		return origin, err
 	}
 
@@ -208,7 +208,7 @@ func (s * ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string)
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", ErrShortLinkNotFound
 		}
-		return "", err		
+		return "", err
 	}
 
 	link, err := s.links.FindEnabledByGIDAndFullShortURL(ctx, route.GID, route.FullShortURL)
@@ -226,6 +226,6 @@ func (s * ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string)
 	if err := s.cache.Set(ctx, fullShortURL, link.OriginURL); err != nil {
 		return "", err
 	}
-	
+
 	return link.OriginURL, nil
 }

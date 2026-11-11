@@ -23,7 +23,7 @@ func ShortLinkShardIndex(value string) int64 {
 		hash = -hash
 	}
 
-	return hash % int64(ShortLinkShardCount)	
+	return hash % int64(ShortLinkShardCount)
 }
 
 func ShortLinkTableName(gid string) string {

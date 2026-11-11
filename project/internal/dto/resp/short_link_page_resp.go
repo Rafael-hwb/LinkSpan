@@ -4,7 +4,7 @@ type ShortLinkPageResp struct {
 	Records []ShortLinkPageItem `json:"records"`
 	Total   int64               `json:"total"`
 	Current int32               `json:"current"`
-	Size    int32               `json:"size"`	
+	Size    int32               `json:"size"`
 }
 
 type ShortLinkPageItem struct {

@@ -82,7 +82,6 @@ func (r *ShortLinkRepository) Insert(ctx context.Context, tx *sql.Tx, link entit
 	return nil
 }
 
-
 func (r *ShortLinkRepository) PageByGID(ctx context.Context, gid string, limit, offset int64) ([]entity.ShortLinkDO, int64, error) {
 	filter := fmt.Sprintf("FROM %s WHERE gid = ? AND enable_status = 0 AND del_flag = 0", ShortLinkTableName(gid))
 
@@ -120,14 +119,14 @@ func (r *ShortLinkRepository) Update(ctx context.Context, link entity.ShortLinkD
 		SET origin_url = ?, valid_date_type = ?, valid_date = ?, %s = ?, update_time = NOW()
 		WHERE gid = ? AND full_short_url = ? AND enable_status = 0 AND del_flag = 0
 	`, ShortLinkTableName(link.GID), "`describe`")
-	
+
 	_, err := r.db.ExecContext(ctx, query, link.OriginURL, link.ValidDateType,
 		link.ValidDate, link.Describe, link.GID, link.FullShortURL)
-	
+
 	if err != nil {
 		return fmt.Errorf("修改短链接失败: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -144,11 +143,11 @@ func (r *ShortLinkRepository) FindEnabledByGIDAndFullShortURL(ctx context.Contex
 	if err != nil {
 		return entity.ShortLinkDO{}, fmt.Errorf("查询短链接失败: %w", err)
 	}
-	
+
 	if validDate.Valid {
 		link.ValidDate = &validDate.Time
 	}
 	link.GID = gid
 	link.FullShortURL = fullShortURL
-	return link, nil	
+	return link, nil
 }
