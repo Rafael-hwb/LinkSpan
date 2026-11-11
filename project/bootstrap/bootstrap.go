@@ -13,7 +13,7 @@ import (
 
 func RegisterRoutes(r *gin.Engine, db *sql.DB) {
 	links := repository.NewShortLinkRepository(db)
-	routes := repository.NewShortLinkGotoRepository()
+	routes := repository.NewShortLinkGotoRepository(db)
 	shortLinkService := service.NewShortLinkService(&links, routes)
 	router.Register(r, handler.NewShortLinkHandler(shortLinkService))
 }
