@@ -15,6 +15,9 @@ const (
 	gotoLockKeyPrefix  = "short-link:lock:goto:"
 	gotoLockTTL        = 30 * time.Second
 	gotoLockRetry      = 50 * time.Millisecond
+	gotoNullCacheKeyPrefix = "short-link:is-null:goto:"
+	gotoNullCacheValue     = "-"
+	gotoNullCacheTTL       = 30 * time.Minute
 )
 
 type ShortLinkGotoCache struct {
@@ -33,6 +36,10 @@ func gotoCacheKey(fullShortURL string) string {
 
 func gotoLockKey(fullShortURL string) string {
 	return gotoLockKeyPrefix + fullShortURL
+}
+
+func gotoNullCacheKey(fullShortURL string) string {
+	return gotoNullCacheKeyPrefix + fullShortURL
 }
 
 func (c *ShortLinkGotoCache) Get(ctx context.Context, fullShortURL string) (string, bool, error) {
@@ -92,4 +99,22 @@ func (c *ShortLinkGotoCache) Unlock(fullShortURL, token string) error {
 	`
 
 	return c.client.Eval(ctx, script, []string{gotoLockKey(fullShortURL)}, token).Err()
+}
+
+func (c *ShortLinkGotoCache) GetNull(ctx context.Context, fullShortURL string) (bool, error) {
+	value ,err := c.client.Get(ctx, gotoCacheKey(fullShortURL)).Result()
+	if err == redis.Nil {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("读取短链接空缓存失败: %w", err)
+	}
+	return value != "", nil
+}
+
+func (c *ShortLinkGotoCache) SetNull(ctx context.Context, fullShortURL string) error {
+	if err := c.client.Set(ctx, gotoNullCacheKey(fullShortURL), gotoNullCacheValue, gotoNullCacheTTL).Err(); err != nil {
+		return fmt.Errorf("写入短链接空缓存失败: %w", err)
+	}
+	return nil
 }
