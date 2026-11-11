@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 
 	"linkspan/internal/common/convention/exception"
 	"linkspan/internal/common/convention/result"
@@ -67,4 +69,29 @@ func (h *ShortLinkHandler) Update(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, result.Success[any](nil))
+}
+
+func (h *ShortLinkHandler) RestoreURL(c *gin.Context) {
+	if c.Request.Method != http.MethodGet {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	path := strings.TrimPrefix(c.Request.URL.Path, "/")
+	if path == "" || strings.Contains(path, "/") {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	fullShortURL := c.Request.Host + "/" + path
+	origin, err := h.service.RestoreURL(c.Request.Context(), fullShortURL)
+	if err != nil {
+		if errors.Is(err, service.ErrShortLinkNotFound) {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		_ = c.Error(err)
+		return
+	}
+	c.Redirect(http.StatusFound, origin)
 }
