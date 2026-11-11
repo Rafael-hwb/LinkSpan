@@ -13,6 +13,7 @@ import (
 
 	"linkspan/internal/common/convention/errorcode"
 	"linkspan/internal/common/convention/exception"
+	"linkspan/project/internal/cache"
 	"linkspan/project/internal/dao/entity"
 	"linkspan/project/internal/dto/req"
 	"linkspan/project/internal/dto/resp"
@@ -24,10 +25,15 @@ import (
 type ShortLinkService struct {
 	links  *repository.ShortLinkRepository
 	routes *repository.ShortLinkGotoRepository
+	cache  *cache.ShortLinkGotoCache
 }
 
-func NewShortLinkService(links *repository.ShortLinkRepository, routes *repository.ShortLinkGotoRepository) *ShortLinkService {
-	return &ShortLinkService{links: links, routes: routes}
+func NewShortLinkService(links *repository.ShortLinkRepository, routes *repository.ShortLinkGotoRepository, cache *cache.ShortLinkGotoCache) *ShortLinkService {
+	return &ShortLinkService{
+		links: links, 
+		routes: routes,
+		cache: cache,
+	}
 }
 
 var ErrShortLinkNotFound = errors.New("short link not found")
@@ -179,6 +185,24 @@ func (s * ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string)
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
+	if origin, ok , err := s.cache.Get(ctx, fullShortURL); err != nil {
+		return "", err
+	}else if ok {
+		return origin, err
+	}
+
+	token, err := s.cache.Lock(ctx, fullShortURL)
+	if err != nil {
+		return "", err
+	}
+	defer s.cache.Unlock(fullShortURL, token)
+
+	if origin, ok, err := s.cache.Get(ctx, fullShortURL); err != nil {
+		return "", err
+	} else if ok {
+		return origin, nil
+	}
+
 	route, err := s.routes.FindByFullShortURL(ctx, fullShortURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -198,5 +222,10 @@ func (s * ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string)
 	if link.ValidDate != nil && link.ValidDate.Before(time.Now()) {
 		return "", ErrShortLinkNotFound
 	}
+
+	if err := s.cache.Set(ctx, fullShortURL, link.OriginURL); err != nil {
+		return "", err
+	}
+	
 	return link.OriginURL, nil
 }
