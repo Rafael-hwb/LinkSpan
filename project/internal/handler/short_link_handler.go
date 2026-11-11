@@ -23,49 +23,48 @@ func (h *ShortLinkHandler) Create(c *gin.Context) {
 	var request req.ShortLinkCreateReq
 	if err := c.ShouldBindJSON(&request); err != nil {
 		_ = c.Error(exception.FromBindError(err))
+		c.Abort()
 		return
 	}
 
 	response, err := h.service.Create(c.Request.Context(), request)
 	if err != nil {
 		_ = c.Error(err)
+		c.Abort()
 		return
 	}
-	writeSuccess(c, response)
+	c.JSON(http.StatusOK, result.Success(response))
 }
 
 func (h *ShortLinkHandler) Page(c *gin.Context) {
 	var request req.ShortLinkPageReq
 	if err := c.ShouldBindQuery(&request); err != nil {
 		_ = c.Error(exception.FromBindError(err))
+		c.Abort()
 		return
 	}
 
 	response, err := h.service.Page(c.Request.Context(), request)
 	if err != nil {
 		_ = c.Error(err)
+		c.Abort()
 		return
 	}
-	writeSuccess(c, response)
+	c.JSON(http.StatusOK, result.Success(response))
 }
 
 func (h *ShortLinkHandler) Update(c *gin.Context) {
 	var request req.ShortLinkUpdateReq
 	if err := c.ShouldBindJSON(&request); err != nil {
 		_ = c.Error(exception.FromBindError(err))
+		c.Abort()
 		return
 	}
 
 	if err := h.service.Update(c.Request.Context(), request); err != nil {
 		_ = c.Error(err)
+		c.Abort()
 		return
 	}
-	writeSuccess(c, nil)
-}
-
-func writeSuccess(c *gin.Context, data any) {
-	response := result.Success(data)
-	requestID := c.Writer.Header().Get("X-Request-ID")
-	response.RequestID = &requestID
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, result.Success[any](nil))
 }
