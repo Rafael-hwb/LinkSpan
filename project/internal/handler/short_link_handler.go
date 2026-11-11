@@ -69,7 +69,7 @@ func (h *ShortLinkHandler) Page(c *gin.Context) {
 func (h *ShortLinkHandler) Update(c *gin.Context) {
 	var request req.ShortLinkUpdateReq
 	if err := c.ShouldBindJSON(&request); err != nil {
-		writeCreateFailure(c, "A000003", "请检查创建短链接的请求参数")
+		writeCreateFailure(c, "A000003", "请检查修改短链接的请求参数")
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *ShortLinkHandler) Update(c *gin.Context) {
 	case errors.Is(err, service.ErrInvalidCreateRequest):
 		writeCreateFailure(c, "A000003", err.Error())
 	default:
-		log.Printf("创建短链接失败: %v", err)
+		log.Printf("修改短链接失败: %v", err)
 		writeCreateFailure(c, "B000001", "系统执行错误")
 	}
 }

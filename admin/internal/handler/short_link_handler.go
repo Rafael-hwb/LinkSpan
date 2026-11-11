@@ -49,3 +49,20 @@ func (h *ShortLinkHandler) Page(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, reply)
 }
+
+func (h *ShortLinkHandler) Update(c *gin.Context) {
+	var request req.ShortLinkUpdateReq
+	if err := c.ShouldBindJSON(&request); err != nil {
+		_ = c.Error(exception.FromBindError(err))
+		c.Abort()
+		return
+	}
+
+	reply, err := h.service.Update(c.Request.Context(), request)
+	if err != nil {
+		_ = c.Error(err)
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, reply)
+}
