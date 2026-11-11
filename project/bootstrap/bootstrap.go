@@ -1,7 +1,9 @@
 package bootstrap
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 
 	"linkspan/project/internal/cache"
 	"linkspan/project/internal/handler"
@@ -13,10 +15,23 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func RegisterRoutes(r *gin.Engine, db *sql.DB, redisClient *redis.Client) {
+func RegisterRoutes(ctx context.Context, r *gin.Engine, db *sql.DB, redisClient *redis.Client) error {
 	links := repository.NewShortLinkRepository(db)
 	routes := repository.NewShortLinkGotoRepository(db)
 	gotoCache := cache.NewShortLinkGotoCache(redisClient)
-	shortLinkService := service.NewShortLinkService(&links, routes, gotoCache)
+	bloom := cache.NewShortLinkBloom(redisClient)
+	if err := bloom.Prepare(ctx); err != nil {
+		return err
+	}
+	if err := routes.ForEachFullShortURL(ctx, func(fullShortURL string) error {
+		return bloom.Add(ctx, fullShortURL)
+	}); err != nil {
+		return fmt.Errorf("导入已有短链接失败: %w", err)
+	}
+	if err := bloom.MarkReady(ctx); err != nil {
+		return err
+	}
+	shortLinkService := service.NewShortLinkService(&links, routes, gotoCache, bloom)
 	router.Register(r, handler.NewShortLinkHandler(shortLinkService))
+	return nil
 }

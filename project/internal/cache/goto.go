@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	gotoCacheKeyPrefix = "short-link:goto:"
-	gotoLockKeyPrefix  = "short-link:lock:goto:"
-	gotoLockTTL        = 30 * time.Second
-	gotoLockRetry      = 50 * time.Millisecond
+	gotoCacheKeyPrefix     = "short-link:goto:"
+	gotoLockKeyPrefix      = "short-link:lock:goto:"
+	gotoLockTTL            = 30 * time.Second
+	gotoLockRetry          = 50 * time.Millisecond
 	gotoNullCacheKeyPrefix = "short-link:is-null:goto:"
 	gotoNullCacheValue     = "-"
 	gotoNullCacheTTL       = 30 * time.Minute
@@ -102,7 +102,7 @@ func (c *ShortLinkGotoCache) Unlock(fullShortURL, token string) error {
 }
 
 func (c *ShortLinkGotoCache) GetNull(ctx context.Context, fullShortURL string) (bool, error) {
-	value ,err := c.client.Get(ctx, gotoCacheKey(fullShortURL)).Result()
+	value, err := c.client.Get(ctx, gotoNullCacheKey(fullShortURL)).Result()
 	if err == redis.Nil {
 		return false, nil
 	}

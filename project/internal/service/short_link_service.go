@@ -26,13 +26,15 @@ type ShortLinkService struct {
 	links  *repository.ShortLinkRepository
 	routes *repository.ShortLinkGotoRepository
 	cache  *cache.ShortLinkGotoCache
+	bloom  *cache.ShortLinkBloom
 }
 
-func NewShortLinkService(links *repository.ShortLinkRepository, routes *repository.ShortLinkGotoRepository, cache *cache.ShortLinkGotoCache) *ShortLinkService {
+func NewShortLinkService(links *repository.ShortLinkRepository, routes *repository.ShortLinkGotoRepository, cache *cache.ShortLinkGotoCache, bloom *cache.ShortLinkBloom) *ShortLinkService {
 	return &ShortLinkService{
 		links:  links,
 		routes: routes,
 		cache:  cache,
+		bloom:  bloom,
 	}
 }
 
@@ -64,6 +66,9 @@ func (s *ShortLinkService) Create(ctx context.Context, request req.ShortLinkCrea
 			return s.routes.Insert(ctx, tx, route)
 		})
 		if err == nil {
+			if err := s.bloom.Add(ctx, link.FullShortURL); err != nil {
+				return response, err
+			}
 			return resp.ShortLinkCreateResp{
 				GID: link.GID, OriginURL: link.OriginURL, FullShortURL: "http://" + link.FullShortURL,
 			}, nil
@@ -188,7 +193,21 @@ func (s *ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string) 
 	if origin, ok, err := s.cache.Get(ctx, fullShortURL); err != nil {
 		return "", err
 	} else if ok {
-		return origin, err
+		return origin, nil
+	}
+
+	exists, err := s.bloom.Contains(ctx, fullShortURL)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return "", ErrShortLinkNotFound
+	}
+
+	if isNull, err := s.cache.GetNull(ctx, fullShortURL); err != nil {
+		return "", err
+	} else if isNull {
+		return "", ErrShortLinkNotFound
 	}
 
 	token, err := s.cache.Lock(ctx, fullShortURL)
@@ -206,13 +225,15 @@ func (s *ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string) 
 	route, err := s.routes.FindByFullShortURL(ctx, fullShortURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			if err := s.cache.SetNull(ctx, fullShortURL); err != nil {
+				return "", err
+			}
 			return "", ErrShortLinkNotFound
 		}
 		return "", err
 	}
 
 	link, err := s.links.FindEnabledByGIDAndFullShortURL(ctx, route.GID, route.FullShortURL)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", ErrShortLinkNotFound
@@ -222,10 +243,8 @@ func (s *ShortLinkService) RestoreURL(ctx context.Context, fullShortURL string) 
 	if link.ValidDate != nil && link.ValidDate.Before(time.Now()) {
 		return "", ErrShortLinkNotFound
 	}
-
 	if err := s.cache.Set(ctx, fullShortURL, link.OriginURL); err != nil {
 		return "", err
 	}
-
 	return link.OriginURL, nil
 }

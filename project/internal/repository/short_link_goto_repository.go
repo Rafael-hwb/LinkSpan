@@ -45,3 +45,34 @@ func (r *ShortLinkGotoRepository) FindByFullShortURL(ctx context.Context, fullSh
 
 	return route, nil
 }
+
+func (r *ShortLinkGotoRepository) ForEachFullShortURL(ctx context.Context, visit func(string) error) error {
+	for i := 0; i < ShortLinkShardCount; i++ {
+		query := fmt.Sprintf(`
+			SELECT full_short_url
+			FROM t_link_goto_%d
+			WHERE full_short_url IS NOT NULL
+		`, i)
+		rows, err := r.db.QueryContext(ctx, query)
+		if err != nil {
+			return fmt.Errorf("查询已有短链接失败: %w", err)
+		}
+		for rows.Next() {
+			var fullShortURL string
+			if err := rows.Scan(&fullShortURL); err != nil {
+				rows.Close()
+				return fmt.Errorf("读取已有短链接失败: %w", err)
+			}
+			if err := visit(fullShortURL); err != nil {
+				rows.Close()
+				return err
+			}
+		}
+		err = rows.Err()
+		rows.Close()
+		if err != nil {
+			return fmt.Errorf("遍历已有短链接失败: %w", err)
+		}
+	}
+	return nil
+}
