@@ -12,8 +12,9 @@ import (
 	"testing"
 
 	"linkspan/admin/internal/common/convention/errorcode"
-	"linkspan/admin/internal/common/convention/exception"
-	"linkspan/admin/internal/common/convention/result"
+	"linkspan/internal/common/convention/exception"
+	"linkspan/internal/common/convention/result"
+	httpmiddleware "linkspan/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +26,7 @@ func TestErrorHandler(t *testing.T) {
 	log.SetOutput(&logs)
 	t.Cleanup(func() { log.SetOutput(previous) })
 	engine := gin.New()
-	engine.Use(RequestLogger(), ErrorHandler())
+	engine.Use(httpmiddleware.RequestLogger(), httpmiddleware.ErrorHandler())
 	cause := errors.New("diagnostic-db-cause")
 	engine.GET("/business", func(c *gin.Context) {
 		_ = c.Error(fmt.Errorf("service: %w", exception.WrapServiceError(errorcode.UserNull, cause)))

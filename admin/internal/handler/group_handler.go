@@ -3,10 +3,10 @@ package handler
 import (
 	"net/http"
 
-	"linkspan/admin/internal/common/convention/exception"
-	"linkspan/admin/internal/common/convention/result"
 	"linkspan/admin/internal/dto/req"
 	"linkspan/admin/internal/service"
+	"linkspan/internal/common/convention/exception"
+	"linkspan/internal/common/convention/result"
 
 	"github.com/gin-gonic/gin"
 )

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"linkspan/admin/internal/common/biz/usercontext"
-	"linkspan/admin/internal/common/convention/exception"
 	"linkspan/admin/internal/dto/req"
+	"linkspan/internal/common/convention/exception"
 )
 
 func TestUserServiceRejectsUnauthorizedAndInvalidRequests(t *testing.T) {

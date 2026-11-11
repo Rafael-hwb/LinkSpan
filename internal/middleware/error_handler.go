@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"linkspan/admin/internal/common/convention/errorcode"
-	"linkspan/admin/internal/common/convention/exception"
-	"linkspan/admin/internal/common/convention/result"
+	"linkspan/internal/common/convention/errorcode"
+	"linkspan/internal/common/convention/exception"
+	"linkspan/internal/common/convention/result"
 
 	"github.com/gin-gonic/gin"
 )

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"linkspan/admin/bootstrap"
-	"linkspan/admin/internal/middleware"
+	"linkspan/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )

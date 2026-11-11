@@ -3,7 +3,7 @@
 ## 接口兼容性
 
 业务成功及业务失败继续使用 HTTP 200，响应保留 code、message、data、requestId、success。
-本次没有修改成功响应构造器。失败响应中的 requestId 现在有实际值，并与响应头 X-Request-ID 相同。
+admin 和 project 共用错误中间件、访问日志、绑定错误分类和响应结构。各服务处理的错误响应都附带与 X-Request-ID 对应的请求编号。
 路由不存在的 HTTP 404、服务启动失败、连接中断等不属于业务错误包装范围。
 
 ## 错误码
@@ -74,3 +74,19 @@ B000200～B000203 等原用户业务码保持不变。A000300 当前用于注册
 
 执行 `go test ./admin/...`。测试不依赖真实 MySQL 或 Redis，不修改业务数据。
 覆盖参数解析、字段校验、错误原因链、身份/权限分支、panic 恢复、超时、响应防重写与访问日志凭证隐藏。
+
+## project 短链接接口
+
+创建、分页、修改通过 `c.Error(err)` 把错误交给 project 的 `ErrorHandler`。空请求体使用 `A000004`，JSON 格式或类型错误使用 `A000002`，字段校验和业务参数错误使用 `A000003`，执行超时使用 `B000100`，其他内部错误和 panic 使用 `B000001`。数据库错误由 Repository 返回，客户端收到约定的错误消息。创建、分页、修改的响应体 `requestId` 与响应头 `X-Request-ID` 对应。admin 转发接口会保留 project 响应体里的请求编号，admin 自己的响应头用于查 admin 日志。
+
+### Apifox 验证
+
+在 Apifox 切换到 project 的本地环境 `http://127.0.0.1:8002`，发送以下请求。每项预期 HTTP 200、`success: false`、`data: null`，并可在响应 Header 对照 `X-Request-ID`。
+
+| 请求 | 输入 | 预期 |
+| --- | --- | --- |
+| POST /api/short-link/v1/create | Body 选 JSON，只填写一个左花括号 | A000002，请求体格式错误 |
+| GET /api/short-link/v1/page | Params 留空 | A000003，分组标识不能为空 |
+| POST /api/short-link/v1/update | 从可用的修改请求复制 Body，将 originUrl 改成 go.dev/tour/ | A000003，originUrl 须为完整的 HTTP 或 HTTPS 地址 |
+
+在 admin 的修改请求重复最后一个用例，使用当前账号拥有的分组，并在 Headers 里填写有效的 username 和 token。预期收到相同的业务错误码和消息。执行 `go test ./...` 可验证错误响应、超时和 panic，无需连接数据库。

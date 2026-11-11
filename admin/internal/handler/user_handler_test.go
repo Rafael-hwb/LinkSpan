@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"linkspan/admin/internal/common/convention/result"
-	"linkspan/admin/internal/middleware"
+	"linkspan/internal/common/convention/result"
+	"linkspan/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )

@@ -11,6 +11,7 @@ import (
 	"linkspan/admin/internal/handler"
 	"linkspan/admin/internal/middleware"
 	"linkspan/admin/internal/service"
+	httpmiddleware "linkspan/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +32,7 @@ func TestGroupRouteRejectsRequestsBeforeStorage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := gin.New()
-			r.Use(middleware.ErrorHandler())
+			r.Use(httpmiddleware.ErrorHandler())
 			auth := middleware.RequireLogin(nil)
 			if tt.authenticated {
 				// 参数校验测试注入可信上下文，不连接实际 Redis。

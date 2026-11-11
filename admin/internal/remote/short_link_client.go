@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"linkspan/admin/internal/common/convention/result"
+	"linkspan/internal/common/convention/result"
 	"net/http"
 	"time"
 )

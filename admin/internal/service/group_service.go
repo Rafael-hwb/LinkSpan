@@ -7,7 +7,7 @@ import (
 	"linkspan/admin/internal/cache"
 	"linkspan/admin/internal/common/biz/usercontext"
 	"linkspan/admin/internal/common/convention/errorcode"
-	"linkspan/admin/internal/common/convention/exception"
+	"linkspan/internal/common/convention/exception"
 	"linkspan/admin/internal/dao/entity"
 	"linkspan/admin/internal/dto/req"
 	"linkspan/admin/internal/dto/resp"

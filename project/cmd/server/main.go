@@ -4,6 +4,7 @@ import (
 	"log"
 
 	adminbootstrap "linkspan/admin/bootstrap"
+	"linkspan/internal/middleware"
 	"linkspan/project/bootstrap"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,8 @@ func main() {
 	}
 	defer db.Close()
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(middleware.RequestLogger(), middleware.ErrorHandler())
 
 	bootstrap.RegisterRoutes(r, db)
 

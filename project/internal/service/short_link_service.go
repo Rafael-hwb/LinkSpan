@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"linkspan/internal/common/convention/errorcode"
+	"linkspan/internal/common/convention/exception"
 	"linkspan/project/internal/dao/entity"
 	"linkspan/project/internal/dto/req"
 	"linkspan/project/internal/dto/resp"
@@ -18,8 +20,6 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 )
-
-var ErrInvalidCreateRequest = errors.New("创建短链接参数错误")
 
 type ShortLinkService struct {
 	links  *repository.ShortLinkRepository
@@ -72,46 +72,45 @@ func buildShortLink(request req.ShortLinkCreateReq) (entity.ShortLinkDO, error) 
 	var link entity.ShortLinkDO
 	domain := strings.ToLower(strings.TrimSpace(request.Domain))
 	if domain != "localhost:8002" {
-		return link, fmt.Errorf("%w: domain 须为 localhost:8002", ErrInvalidCreateRequest)
+		return link, &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "domain 须为 localhost:8002"}
 	}
 	origin := strings.TrimSpace(request.OriginURL)
 	target, err := url.Parse(origin)
 	if err != nil || target.Hostname() == "" || (target.Scheme != "http" && target.Scheme != "https") {
-		return link, fmt.Errorf("%w: originUrl 须为完整的 HTTP 或 HTTPS 地址", ErrInvalidCreateRequest)
+		return link, &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "originUrl 须为完整的 HTTP 或 HTTPS 地址"}
 	}
 	gid := strings.TrimSpace(request.GID)
 	if gid == "" {
-		return link, fmt.Errorf("%w: gid 不能为空", ErrInvalidCreateRequest)
+		return link, &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "gid 不能为空"}
 	}
 	if request.CreatedType == nil || (*request.CreatedType != 0 && *request.CreatedType != 1) || request.ValidDateType == nil {
-		return link, fmt.Errorf("%w: 请检查创建类型和有效期类型", ErrInvalidCreateRequest)
+		return link, &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "请检查创建类型和有效期类型"}
 	}
 
 	var validDate *time.Time
 	switch *request.ValidDateType {
 	case 0:
 		if request.ValidDate != nil {
-			return link, fmt.Errorf("%w: 永久有效时 validDate 须为 null", ErrInvalidCreateRequest)
+			return link, &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "永久有效时 validDate 须为 null"}
 		}
 	case 1:
 		if request.ValidDate == nil {
-			return link, fmt.Errorf("%w: 自定义有效期需要 validDate", ErrInvalidCreateRequest)
+			return link, &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "自定义有效期需要 validDate"}
 		}
 		const layout = "2006-01-02 15:04:05"
 		parsed, err := time.ParseInLocation(layout, *request.ValidDate, time.FixedZone("UTC+8", 8*60*60))
 		if err != nil || parsed.Format(layout) != *request.ValidDate || !parsed.After(time.Now()) {
-			return link, fmt.Errorf("%w: validDate 须为未来的北京时间，格式为 yyyy-MM-dd HH:mm:ss", ErrInvalidCreateRequest)
+			return link, &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "validDate 须为未来的北京时间，格式为 yyyy-MM-dd HH:mm:ss"}
 		}
 		validDate = &parsed
 	default:
-		return link, fmt.Errorf("%w: validDateType 须为 0 或 1", ErrInvalidCreateRequest)
+		return link, &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "validDateType 须为 0 或 1"}
 	}
 	return entity.ShortLinkDO{
 		Domain: domain, OriginURL: origin, GID: gid, CreatedType: *request.CreatedType,
 		ValidDateType: *request.ValidDateType, ValidDate: validDate, Describe: request.Describe,
 	}, nil
 }
-
 
 func (s *ShortLinkService) Page(ctx context.Context, request req.ShortLinkPageReq) (resp.ShortLinkPageResp, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -127,8 +126,8 @@ func (s *ShortLinkService) Page(ctx context.Context, request req.ShortLinkPageRe
 
 	result := resp.ShortLinkPageResp{
 		Records: make([]resp.ShortLinkPageItem, 0, len(links)),
-		Total: total, Current: request.Current, Size: request.Size,
-	}	
+		Total:   total, Current: request.Current, Size: request.Size,
+	}
 
 	for _, link := range links {
 		result.Records = append(result.Records, resp.ShortLinkPageItem{
@@ -145,17 +144,17 @@ func (s *ShortLinkService) Page(ctx context.Context, request req.ShortLinkPageRe
 func (s *ShortLinkService) Update(ctx context.Context, request req.ShortLinkUpdateReq) error {
 	gid := strings.TrimSpace(request.GID)
 	if gid != strings.TrimSpace(request.OriginGID) {
-		return fmt.Errorf("%w: 本节仅支持同一分组内修改", ErrInvalidCreateRequest)
+		return &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "本节仅支持同一分组内修改"}
 	}
 
 	const prefix = "localhost:8002/"
 	fullShortURL := strings.TrimPrefix(strings.TrimSpace(request.FullShortURL), "http://")
 	suffix, ok := strings.CutPrefix(fullShortURL, prefix)
 	if !ok || len(suffix) != 8 {
-		return fmt.Errorf("%w: 短地址格式错误", ErrInvalidCreateRequest)
+		return &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "短地址格式错误"}
 	}
 	if _, err := hex.DecodeString(suffix); err != nil || suffix != strings.ToLower(suffix) {
-		return fmt.Errorf("%w: 短地址后缀格式错误", ErrInvalidCreateRequest)
+		return &exception.ServiceError{Code: errorcode.ParameterInvalid.Code, Message: "短地址后缀格式错误"}
 	}
 
 	createdType := 0

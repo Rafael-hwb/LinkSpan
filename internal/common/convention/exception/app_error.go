@@ -1,6 +1,6 @@
 package exception
 
-import "linkspan/admin/internal/common/convention/errorcode"
+import "linkspan/internal/common/convention/errorcode"
 
 type ServiceError struct {
 	Code    string

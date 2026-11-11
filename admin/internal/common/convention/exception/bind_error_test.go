@@ -1,4 +1,4 @@
-package exception
+package exception_test
 
 import (
 	"encoding/json"
@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"testing"
 
-	"linkspan/admin/internal/common/convention/errorcode"
 	"linkspan/admin/internal/dto/req"
+	"linkspan/internal/common/convention/errorcode"
+	"linkspan/internal/common/convention/exception"
 
 	"github.com/gin-gonic/gin/binding"
 )
@@ -45,7 +46,7 @@ func TestFromBindError(t *testing.T) {
 				t.Fatal("fixture did not produce an error")
 			}
 			wrapped := fmt.Errorf("bind: %w", tt.err)
-			got := FromBindError(wrapped)
+			got := exception.FromBindError(wrapped)
 			if got.Code != tt.code || got.Message != tt.message {
 				t.Fatalf("got %s %q, want %s %q", got.Code, got.Message, tt.code, tt.message)
 			}
@@ -54,7 +55,7 @@ func TestFromBindError(t *testing.T) {
 			}
 		})
 	}
-	if FromBindError(nil) != nil {
+	if exception.FromBindError(nil) != nil {
 		t.Fatal("nil error should stay nil")
 	}
 }

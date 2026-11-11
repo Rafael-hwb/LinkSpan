@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"strconv"
 
-	"linkspan/admin/internal/common/convention/errorcode"
+	"linkspan/internal/common/convention/errorcode"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -66,6 +67,18 @@ func fieldLabel(field string) string {
 		return "手机号"
 	case "Mail", "mail":
 		return "邮箱"
+	case "GID", "gid":
+		return "分组标识"
+	case "OriginGID", "originGid":
+		return "原分组标识"
+	case "OriginURL", "originUrl":
+		return "原始网址"
+	case "FullShortURL", "fullShortUrl":
+		return "短地址"
+	case "Current", "current":
+		return "页码"
+	case "Size", "size":
+		return "每页条数"
 	case "Token", "token":
 		return "登录凭证"
 	default:
@@ -79,8 +92,14 @@ func validationMessage(field validator.FieldError) string {
 	case "required":
 		return label + "不能为空"
 	case "min":
+		if field.Kind() != reflect.String {
+			return fmt.Sprintf("%s不能小于%s", label, field.Param())
+		}
 		return fmt.Sprintf("%s长度不能少于%s个字符", label, field.Param())
 	case "max":
+		if field.Kind() != reflect.String {
+			return fmt.Sprintf("%s不能大于%s", label, field.Param())
+		}
 		return fmt.Sprintf("%s长度不能超过%s个字符", label, field.Param())
 	case "len":
 		return fmt.Sprintf("%s长度必须为%s个字符", label, field.Param())
