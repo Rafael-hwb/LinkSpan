@@ -130,3 +130,25 @@ func (r *ShortLinkRepository) Update(ctx context.Context, link entity.ShortLinkD
 	
 	return nil
 }
+
+func (r *ShortLinkRepository) FindEnabledByGIDAndFullShortURL(ctx context.Context, gid string, fullShortURL string) (entity.ShortLinkDO, error) {
+	query := fmt.Sprintf(`
+		SELECT origin_url, valid_date_type, valid_date
+		FROM %s
+		WHERE gid = ? AND full_short_url = ? AND enable_status = 0 AND del_flag = 0
+	`, ShortLinkTableName(gid))
+
+	var link entity.ShortLinkDO
+	var validDate sql.NullTime
+	err := r.db.QueryRowContext(ctx, query, gid, fullShortURL).Scan(&link.OriginURL, &link.ValidDateType, &validDate)
+	if err != nil {
+		return entity.ShortLinkDO{}, fmt.Errorf("查询短链接失败: %w", err)
+	}
+	
+	if validDate.Valid {
+		link.ValidDate = &validDate.Time
+	}
+	link.GID = gid
+	link.FullShortURL = fullShortURL
+	return link, nil	
+}
